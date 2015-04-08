@@ -1,12 +1,11 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
@@ -17,7 +16,7 @@ namespace Snoop.Converters
 		public static readonly ArgbToPartsConverter Default = new ArgbToPartsConverter();
 
 		#region IValueConverter Members
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			// value (string)	ARGB text (i.e. #FF102030)
 			// parameter (int)	which "part" to return (0 = alpha, 1 = Red, 2 = Green, 3 = Blue)
@@ -39,7 +38,7 @@ namespace Snoop.Converters
 			string ret = val.Substring((part*2) + 1, 2);
 			return ret;
 		}
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			throw new NotImplementedException();
 		}

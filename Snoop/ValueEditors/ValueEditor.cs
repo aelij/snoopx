@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -14,8 +15,8 @@ namespace Snoop
 	{
 		public bool IsSelected
 		{
-			get { return (bool)this.GetValue(ValueEditor.IsSelectedProperty); }
-			set { this.SetValue(ValueEditor.IsSelectedProperty, value); }
+			get { return (bool)GetValue(IsSelectedProperty); }
+			set { SetValue(IsSelectedProperty, value); }
 		}
 		public static DependencyProperty IsSelectedProperty =
 			DependencyProperty.Register
@@ -27,8 +28,8 @@ namespace Snoop
 
 		public object Value
 		{
-			get { return this.GetValue(ValueEditor.ValueProperty); }
-			set { this.SetValue(ValueEditor.ValueProperty, value); }
+			get { return GetValue(ValueProperty); }
+			set { SetValue(ValueProperty, value); }
 		}
 		public static DependencyProperty ValueProperty =
 			DependencyProperty.Register
@@ -36,7 +37,7 @@ namespace Snoop
 				"Value",
 				typeof(object),
 				typeof(ValueEditor),
-				new PropertyMetadata(ValueEditor.HandleValueChanged)
+				new PropertyMetadata(HandleValueChanged)
 			);
 		private static void HandleValueChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
 		{
@@ -48,8 +49,8 @@ namespace Snoop
 
 		public object DescriptiveValue
 		{
-			get { return (bool)this.GetValue(ValueEditor.DescriptiveValueProperty); }
-			set { this.SetValue(ValueEditor.DescriptiveValueProperty, value); }
+			get { return (bool)GetValue(DescriptiveValueProperty); }
+			set { SetValue(DescriptiveValueProperty, value); }
 		}
 		public static DependencyProperty DescriptiveValueProperty =
 			DependencyProperty.Register
@@ -61,8 +62,8 @@ namespace Snoop
 
 		public Type PropertyType
 		{
-			get { return (Type)this.GetValue(ValueEditor.PropertyTypeProperty); }
-			set { this.SetValue(ValueEditor.PropertyTypeProperty, value); }
+			get { return (Type)GetValue(PropertyTypeProperty); }
+			set { SetValue(PropertyTypeProperty, value); }
 		}
 		public static DependencyProperty PropertyTypeProperty =
 			DependencyProperty.Register
@@ -70,7 +71,7 @@ namespace Snoop
 				"PropertyType",
 				typeof(object),
 				typeof(ValueEditor),
-				new PropertyMetadata(ValueEditor.HandleTypeChanged)
+				new PropertyMetadata(HandleTypeChanged)
 			);
 		private static void HandleTypeChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
 		{
@@ -82,8 +83,8 @@ namespace Snoop
 
 		public bool IsEditable
 		{
-			get { return (bool)this.GetValue(ValueEditor.IsEditableProperty); }
-			set { this.SetValue(ValueEditor.IsEditableProperty, value); }
+			get { return (bool)GetValue(IsEditableProperty); }
+			set { SetValue(IsEditableProperty, value); }
 		}
 		public static DependencyProperty IsEditableProperty =
 			DependencyProperty.Register
@@ -105,7 +106,7 @@ namespace Snoop
 				"PropertyInfo",
 				typeof(PropertyInformation),
 				typeof(ValueEditor),
-				new UIPropertyMetadata(null, new PropertyChangedCallback(OnPropertyInfoChanged))
+				new UIPropertyMetadata(null, OnPropertyInfoChanged)
 			);
 		private static void OnPropertyInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{

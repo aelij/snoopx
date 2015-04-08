@@ -1,4 +1,5 @@
 ﻿<!--
+(c) 2015 Eli Arbel
 (c) Copyright Cory Plotts.
 This source is subject to the Microsoft Public License (Ms-PL).
 Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -46,7 +47,7 @@ All other rights reserved.
 			Grid.Row="1"
 			Grid.Column="1"
 			VerticalAlignment="Center"
-			Text="{Binding Path=SelectedItem.DisplayName, ElementName=filterSetList}"
+			Text="{Binding Path=SelectedItem.DisplayName, ElementName=FilterSetList}"
 		/>
 		<TextBlock
 			Grid.Row="2"
@@ -62,11 +63,11 @@ All other rights reserved.
 			Style="{x:Null}"
 			VerticalAlignment="Center"
 			Margin="0,4,0,0"
-			Text="{Binding Path=SelectedItem.Properties, ElementName=filterSetList, Converter={x:Static converters:CsvStringToArrayConverter.Default}}"
+			Text="{Binding Path=SelectedItem.Properties, ElementName=FilterSetList, Converter={x:Static converters:CsvStringToArrayConverter.Default}}"
 		/>
 
 		<ListBox
-			x:Name="filterSetList"
+			x:Name="FilterSetList"
 			Grid.Row="0"
 			Grid.ColumnSpan="2"
 			ItemsSource="{Binding ItemsSource}"
@@ -117,7 +118,7 @@ All other rights reserved.
 				Height="20"
 				Click="UpHandler"
 			>
-				<Image Source="{StaticResource scopeUpDrawingImage}" Margin="3"/>
+				<Image Source="{StaticResource ScopeUpDrawingImage}" Margin="3"/>
 			</Button>
 			<Button
 				x:Name="MoveDown"
@@ -126,7 +127,7 @@ All other rights reserved.
 				Margin="0,5,0,0"
 				Click="DownHandler"
 			>
-				<Image Source="{StaticResource scopeUpDrawingImage}" Margin="3" RenderTransformOrigin="0.5,0.5">
+				<Image Source="{StaticResource ScopeUpDrawingImage}" Margin="3" RenderTransformOrigin="0.5,0.5">
 					<Image.RenderTransform>
 						<RotateTransform Angle="180"/>
 					</Image.RenderTransform>

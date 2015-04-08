@@ -1,21 +1,22 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
-using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using System.Collections;
-using System.Linq;
+using System.Windows.Threading;
+using Snoop.Properties;
 
 namespace Snoop
 {
@@ -23,43 +24,41 @@ namespace Snoop
 	{
 		static AppChooser()
 		{
-			AppChooser.RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
+			RefreshCommand.InputGestures.Add(new KeyGesture(Key.F5));
 		}
 
 		public AppChooser()
 		{
-			this.windowsView = CollectionViewSource.GetDefaultView(this.windows);
+			_windowsView = CollectionViewSource.GetDefaultView(_windows);
 
-			this.InitializeComponent();
+			InitializeComponent();
 
-			this.CommandBindings.Add(new CommandBinding(AppChooser.RefreshCommand, this.HandleRefreshCommand));
-			this.CommandBindings.Add(new CommandBinding(AppChooser.InspectCommand, this.HandleInspectCommand, this.HandleCanInspectOrMagnifyCommand));
-			this.CommandBindings.Add(new CommandBinding(AppChooser.MagnifyCommand, this.HandleMagnifyCommand, this.HandleCanInspectOrMagnifyCommand));
-			this.CommandBindings.Add(new CommandBinding(AppChooser.MinimizeCommand, this.HandleMinimizeCommand));
-			this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, this.HandleCloseCommand));
+			CommandBindings.Add(new CommandBinding(RefreshCommand, HandleRefreshCommand));
+			CommandBindings.Add(new CommandBinding(InspectCommand, HandleInspectCommand, HandleCanInspectOrMagnifyCommand));
+			CommandBindings.Add(new CommandBinding(MagnifyCommand, HandleMagnifyCommand, HandleCanInspectOrMagnifyCommand));
+			CommandBindings.Add(new CommandBinding(MinimizeCommand, HandleMinimizeCommand));
+			CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, HandleCloseCommand));
 		}
-
 
 		public static readonly RoutedCommand InspectCommand = new RoutedCommand();
 		public static readonly RoutedCommand RefreshCommand = new RoutedCommand();
 		public static readonly RoutedCommand MagnifyCommand = new RoutedCommand();
 		public static readonly RoutedCommand MinimizeCommand = new RoutedCommand();
 
-
 		public ICollectionView Windows
 		{
-			get { return this.windowsView; }
+			get { return _windowsView; }
 		}
-		private ICollectionView windowsView;
-		private ObservableCollection<WindowInfo> windows = new ObservableCollection<WindowInfo>();
+		private readonly ICollectionView _windowsView;
+		private readonly ObservableCollection<WindowInfo> _windows = new ObservableCollection<WindowInfo>();
 
 		public void Refresh()
 		{
-			this.windows.Clear();
+			_windows.Clear();
 
 			Dispatcher.BeginInvoke
 			(
-				System.Windows.Threading.DispatcherPriority.Loaded,
+				DispatcherPriority.Loaded,
 				(DispatcherOperationCallback)delegate
 				{
 					try
@@ -72,12 +71,12 @@ namespace Snoop
 							if (window.IsValidProcess && !this.HasProcess(window.OwningProcess))
 							{
 								new AttachFailedHandler(window, this);
-								this.windows.Add(window);
+								this._windows.Add(window);
 							}
 						}
 
-						if (this.windows.Count > 0)
-							this.windowsView.MoveCurrentTo(this.windows[0]);
+						if (this._windows.Count > 0)
+							this._windowsView.MoveCurrentTo(this._windows[0]);
 					}
 					finally
 					{
@@ -96,15 +95,16 @@ namespace Snoop
 			try
 			{
 				// load the window placement details from the user settings.
-				WINDOWPLACEMENT wp = (WINDOWPLACEMENT)Properties.Settings.Default.AppChooserWindowPlacement;
-				wp.length = Marshal.SizeOf(typeof(WINDOWPLACEMENT));
-				wp.flags = 0;
-				wp.showCmd = (wp.showCmd == Win32.SW_SHOWMINIMIZED ? Win32.SW_SHOWNORMAL : wp.showCmd);
+				WindowPlacement wp = Settings.Default.AppChooserWindowPlacement;
+				wp.Length = Marshal.SizeOf(typeof(WindowPlacement));
+				wp.Flags = 0;
+				wp.WindowState = (wp.WindowState == NativeMethods.SW_SHOWMINIMIZED ? NativeMethods.SW_SHOWNORMAL : wp.WindowState);
 				IntPtr hwnd = new WindowInteropHelper(this).Handle;
-				Win32.SetWindowPlacement(hwnd, ref wp);
+				NativeMethods.SetWindowPlacement(hwnd, ref wp);
 			}
 			catch
 			{
+			    // ignored
 			}
 		}
 		protected override void OnClosing(CancelEventArgs e)
@@ -112,37 +112,33 @@ namespace Snoop
 			base.OnClosing(e);
 
 			// persist the window placement details to the user settings.
-			WINDOWPLACEMENT wp = new WINDOWPLACEMENT();
+			WindowPlacement wp;
 			IntPtr hwnd = new WindowInteropHelper(this).Handle;
-			Win32.GetWindowPlacement(hwnd, out wp);
-			Properties.Settings.Default.AppChooserWindowPlacement = wp;
-			Properties.Settings.Default.Save();
+			NativeMethods.GetWindowPlacement(hwnd, out wp);
+			Settings.Default.AppChooserWindowPlacement = wp;
+			Settings.Default.Save();
 		}
-
 
 		private bool HasProcess(Process process)
 		{
-			foreach (WindowInfo window in this.windows)
-				if (window.OwningProcess.Id == process.Id)
-					return true;
-			return false;
+		    return _windows.Any(window => window.OwningProcess.Id == process.Id);
 		}
 
-		private void HandleCanInspectOrMagnifyCommand(object sender, CanExecuteRoutedEventArgs e)
+	    private void HandleCanInspectOrMagnifyCommand(object sender, CanExecuteRoutedEventArgs e)
 		{
-			if (this.windowsView.CurrentItem != null)
+			if (_windowsView.CurrentItem != null)
 				e.CanExecute = true;
 			e.Handled = true;
 		}
 		private void HandleInspectCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			WindowInfo window = (WindowInfo)this.windowsView.CurrentItem;
+			WindowInfo window = (WindowInfo)_windowsView.CurrentItem;
 			if (window != null)
 				window.Snoop();
 		}
 		private void HandleMagnifyCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			WindowInfo window = (WindowInfo)this.windowsView.CurrentItem;
+			WindowInfo window = (WindowInfo)_windowsView.CurrentItem;
 			if (window != null)
 				window.Magnify();
 		}
@@ -150,33 +146,38 @@ namespace Snoop
 		{
 			// clear out cached process info to make the force refresh do the process check over again.
 			WindowInfo.ClearCachedProcessInfo();
-			this.Refresh();
+			Refresh();
 		}
 		private void HandleMinimizeCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			this.WindowState = System.Windows.WindowState.Minimized;
+			WindowState = WindowState.Minimized;
 		}
 		private void HandleCloseCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
 		private void HandleMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			this.DragMove();
+			DragMove();
 		}
+
+	    private void MenuItem_OnSubmenuOpened(object sender, RoutedEventArgs e)
+	    {
+	        Refresh();
+	    }
 	}
 
 	public class WindowInfo
 	{
 		public WindowInfo(IntPtr hwnd)
 		{
-			this.hwnd = hwnd;			
+			_hwnd = hwnd;			
 		}
 
 		public static void ClearCachedProcessInfo()
 		{
-			WindowInfo.processIDToValidityMap.Clear();
+			_processIdToValidityMap.Clear();
 		}
 
 		public event EventHandler<AttachFailedEventArgs> AttachFailed;
@@ -185,8 +186,10 @@ namespace Snoop
 		{
 			get
 			{
-				if (_modules == null)
-					_modules = GetModules().ToArray();
+			    if (_modules == null)
+			    {
+			        _modules = GetModules().ToArray();
+			    }
 				return _modules;
 			}
 		}
@@ -198,7 +201,7 @@ namespace Snoop
 		private IEnumerable<NativeMethods.MODULEENTRY32> GetModules()
 		{
 			int processId;
-			NativeMethods.GetWindowThreadProcessId(hwnd, out processId);
+			NativeMethods.GetWindowThreadProcessId(_hwnd, out processId);
 
 			var me32 = new NativeMethods.MODULEENTRY32();
 			var hModuleSnap = NativeMethods.CreateToolhelp32Snapshot(NativeMethods.SnapshotFlags.Module | NativeMethods.SnapshotFlags.Module32, processId);
@@ -206,7 +209,7 @@ namespace Snoop
 			{
 				using (hModuleSnap)
 				{
-					me32.dwSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf(me32);
+					me32.dwSize = (uint)Marshal.SizeOf(me32);
 					if (NativeMethods.Module32First(hModuleSnap, ref me32))
 					{
 						do
@@ -226,15 +229,15 @@ namespace Snoop
 				bool isValid = false;
 				try
 				{
-					if (this.hwnd == IntPtr.Zero)
+					if (_hwnd == IntPtr.Zero)
 						return false;
 
-					Process process = this.OwningProcess;
+					Process process = OwningProcess;
 					if (process == null)
 						return false;
 
 					// see if we have cached the process validity previously, if so, return it.
-					if (WindowInfo.processIDToValidityMap.TryGetValue(process.Id, out isValid))
+					if (_processIdToValidityMap.TryGetValue(process.Id, out isValid))
 						return isValid;
 
 					// else determine the process validity and cache it.
@@ -265,47 +268,43 @@ namespace Snoop
 						// sometimes the module names aren't always the same case. compare case insensitive.
 						// see for more info: http://snoopwpf.codeplex.com/workitem/6090
 
-						foreach (var module in Modules)
+						if (Modules.Any(module => module.szModule.StartsWith("PresentationFramework", StringComparison.OrdinalIgnoreCase) ||
+						                          module.szModule.StartsWith("PresentationCore", StringComparison.OrdinalIgnoreCase) ||
+						                          module.szModule.StartsWith("wpfgfx", StringComparison.OrdinalIgnoreCase)))
 						{
-							if
-							(
-								module.szModule.StartsWith("PresentationFramework", StringComparison.OrdinalIgnoreCase) ||
-								module.szModule.StartsWith("PresentationCore", StringComparison.OrdinalIgnoreCase) ||
-								module.szModule.StartsWith("wpfgfx", StringComparison.OrdinalIgnoreCase)
-							)
-							{
-								isValid = true;
-								break;
-							}
+						    isValid = true;
 						}
 					}
 
-					WindowInfo.processIDToValidityMap[process.Id] = isValid;
+					_processIdToValidityMap[process.Id] = isValid;
 				}
-				catch(Exception) {}
-				return isValid;
+				catch
+				{
+				    // ignored
+				}
+			    return isValid;
 			}
 		}
 		public Process OwningProcess
 		{
-			get { return NativeMethods.GetWindowThreadProcess(this.hwnd); }
+			get { return NativeMethods.GetWindowThreadProcess(_hwnd); }
 		}
 		public IntPtr HWnd
 		{
-			get { return this.hwnd; }
+			get { return _hwnd; }
 		}
-		private IntPtr hwnd;
+		private readonly IntPtr _hwnd;
 		public string Description
 		{
 			get
 			{
-				Process process = this.OwningProcess;
-				return process.MainWindowTitle + " - " + process.ProcessName + " [" + process.Id.ToString() + "]";
+				Process process = OwningProcess;
+				return process.MainWindowTitle + " - " + process.ProcessName + " [" + process.Id + "]";
 			}
 		}
 		public override string ToString()
 		{
-			return this.Description;
+			return Description;
 		}
 
 		public void Snoop()
@@ -313,7 +312,7 @@ namespace Snoop
 			Mouse.OverrideCursor = Cursors.Wait;
 			try
 			{
-				Injector.Launch(this.HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
+				Injector.Launch(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
 			}
 			catch (Exception e)
 			{
@@ -326,7 +325,7 @@ namespace Snoop
 			Mouse.OverrideCursor = Cursors.Wait;
 			try
 			{
-				Injector.Launch(this.HWnd, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
+				Injector.Launch(HWnd, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
 			}
 			catch (Exception e)
 			{
@@ -340,11 +339,11 @@ namespace Snoop
 			var handler = AttachFailed;
 			if (handler != null)
 			{
-				handler(this, new AttachFailedEventArgs(e, this.Description));
+				handler(this, new AttachFailedEventArgs(e, Description));
 			}
 		}
 		
-		private static Dictionary<int, bool> processIDToValidityMap = new Dictionary<int, bool>();
+		private static readonly Dictionary<int, bool> _processIdToValidityMap = new Dictionary<int, bool>();
 	}
 
 	public class AttachFailedEventArgs : EventArgs
@@ -369,14 +368,14 @@ namespace Snoop
 
 		private void OnSnoopAttachFailed(object sender, AttachFailedEventArgs e)
 		{
-			System.Windows.MessageBox.Show
+			MessageBox.Show
 			(
 				string.Format
 				(
 					"Failed to attach to {0}. Exception occured:{1}{2}",
 					e.WindowName,
 					Environment.NewLine,
-					e.AttachException.ToString()
+					e.AttachException
 				),
 				"Can't Snoop the process!"
 			);
@@ -387,6 +386,6 @@ namespace Snoop
 			}
 		}
 
-		private AppChooser _appChooser;
+		private readonly AppChooser _appChooser;
 	}
 }

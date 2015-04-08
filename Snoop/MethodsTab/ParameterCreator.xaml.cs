@@ -1,21 +1,10 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Snoop.MethodsTab
 {
@@ -33,7 +22,7 @@ namespace Snoop.MethodsTab
 
         public object RootTarget
         {
-            get { return (object)GetValue(RootTargetProperty); }
+            get { return GetValue(RootTargetProperty); }
             set { SetValue(RootTargetProperty, value); }
         }
 
@@ -47,19 +36,19 @@ namespace Snoop.MethodsTab
             private set;
         }
 
-        private void OKClick(object sender, RoutedEventArgs e)
+        private void OkClick(object sender, RoutedEventArgs e)
         {            
-            this.DialogResult = true;
-            this.SelectedTarget = this.propertyInspector.Target;
-            this.Close();            
+            DialogResult = true;
+            SelectedTarget = PropertyInspector.Target;
+            Close();            
         }
 
 
 
         private void CancelClick(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false;
-            this.Close();
+            DialogResult = false;
+            Close();
         }
     }
 }

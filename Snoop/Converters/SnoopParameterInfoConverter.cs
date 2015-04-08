@@ -1,18 +1,16 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Data;
-using Snoop;
 using System.ComponentModel;
-using System.Windows;
+using System.Globalization;
 using System.Reflection;
-
+using System.Windows;
+using System.Windows.Data;
 using Snoop.MethodsTab;
 
 namespace Snoop.Converters
@@ -23,7 +21,7 @@ namespace Snoop.Converters
 
         #region IValueConverter Members
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             SnoopParameterInformation paramInfo = value as SnoopParameterInformation;
             if (paramInfo == null)
@@ -36,7 +34,7 @@ namespace Snoop.Converters
             return result;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -50,7 +48,7 @@ namespace Snoop.Converters
 
         #region IValueConverter Members
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             SnoopParameterInformation paramInfo = (SnoopParameterInformation)value;
             Type t = paramInfo.DeclaringType;
@@ -65,7 +63,7 @@ namespace Snoop.Converters
             foreach (var field in fields)
             {
                 if (dpType.IsAssignableFrom(field.FieldType))
-                    dependencyProperties.Add(new DependencyPropertyNameValuePair() { DependencyPropertyName = field.Name, DependencyProperty = (DependencyProperty)field.GetValue(null) });
+                    dependencyProperties.Add(new DependencyPropertyNameValuePair { DependencyPropertyName = field.Name, DependencyProperty = (DependencyProperty)field.GetValue(null) });
             }
 
             dependencyProperties.Sort();
@@ -73,7 +71,7 @@ namespace Snoop.Converters
             return dependencyProperties;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -98,7 +96,7 @@ namespace Snoop.Converters
         {
             DependencyPropertyNameValuePair toCompareTo = (DependencyPropertyNameValuePair)obj;
 
-            return this.DependencyPropertyName.CompareTo(toCompareTo.DependencyPropertyName);
+            return DependencyPropertyName.CompareTo(toCompareTo.DependencyPropertyName);
         }
 
         #endregion
@@ -110,7 +108,7 @@ namespace Snoop.Converters
 
         #region IValueConverter Members
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is Enum)
             {
@@ -125,7 +123,7 @@ namespace Snoop.Converters
             return null;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

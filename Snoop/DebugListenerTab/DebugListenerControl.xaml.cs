@@ -1,73 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Diagnostics;
-using Snoop.Infrastructure;
 using System.Windows.Threading;
+using Snoop.Infrastructure;
+using Snoop.Properties;
 
 namespace Snoop.DebugListenerTab
 {
 	/// <summary>
 	/// Interaction logic for DebugListenerControl.xaml
 	/// </summary>
-	public partial class DebugListenerControl : UserControl, IListener
+	public partial class DebugListenerControl : IListener
 	{
-		private readonly FiltersViewModel filtersViewModel;// = new FiltersViewModel();
-		private readonly SnoopDebugListener snoopDebugListener = new SnoopDebugListener();
-        private StringBuilder allText = new StringBuilder();
+		private readonly FiltersViewModel _filtersViewModel;
+		private readonly SnoopDebugListener _snoopDebugListener;
+        private readonly StringBuilder _allText;
 
 		public DebugListenerControl()
 		{
-			filtersViewModel = new FiltersViewModel(Properties.Settings.Default.SnoopDebugFilters);
-			this.DataContext = filtersViewModel;
+			_filtersViewModel = new FiltersViewModel(Settings.Default.SnoopDebugFilters);
+		    _snoopDebugListener = new SnoopDebugListener();
+		    _allText = new StringBuilder();
+		    DataContext = _filtersViewModel;
 
 			InitializeComponent();
 
-			snoopDebugListener.RegisterListener(this);
+			_snoopDebugListener.RegisterListener(this);
 		}
 
 		private void checkBoxStartListening_Checked(object sender, RoutedEventArgs e)
 		{
-			Debug.Listeners.Add(snoopDebugListener);
-			PresentationTraceSources.DataBindingSource.Listeners.Add(snoopDebugListener);
+			Debug.Listeners.Add(_snoopDebugListener);
+			PresentationTraceSources.DataBindingSource.Listeners.Add(_snoopDebugListener);
 		}
 
 		private void checkBoxStartListening_Unchecked(object sender, RoutedEventArgs e)
 		{
 			Debug.Listeners.Remove(SnoopDebugListener.ListenerName);
-			PresentationTraceSources.DataBindingSource.Listeners.Remove(snoopDebugListener);
+			PresentationTraceSources.DataBindingSource.Listeners.Remove(_snoopDebugListener);
 		}
 
 		public void Write(string str)
 		{
-            allText.Append(str + Environment.NewLine);
-			if (!filtersViewModel.IsSet || filtersViewModel.FilterMatches(str))
+            _allText.Append(str + Environment.NewLine);
+			if (!_filtersViewModel.IsSet || _filtersViewModel.FilterMatches(str))
 			{
-				this.Dispatcher.BeginInvoke(DispatcherPriority.Render, () => DoWrite(str));
+				Dispatcher.BeginInvoke(DispatcherPriority.Render, () => DoWrite(str));
 			}
 		}
 
 		private void DoWrite(string str)
 		{
-			this.textBoxDebugContent.AppendText(str + Environment.NewLine);
-			this.textBoxDebugContent.ScrollToEnd();
+			DebugContent.AppendText(str + Environment.NewLine);
+			DebugContent.ScrollToEnd();
 		}
 
 
 		private void buttonClear_Click(object sender, RoutedEventArgs e)
 		{
-			this.textBoxDebugContent.Clear();
-            allText = new StringBuilder();
+			DebugContent.Clear();
+            _allText.Clear();
 		}
 
 		private void buttonClearFilters_Click(object sender, RoutedEventArgs e)
@@ -75,35 +69,39 @@ namespace Snoop.DebugListenerTab
 			var result = MessageBox.Show("Are you sure you want to clear your filters?", "Clear Filters Confirmation", MessageBoxButton.YesNo);
 			if (result == MessageBoxResult.Yes)
 			{
-				filtersViewModel.ClearFilters();
-				Properties.Settings.Default.SnoopDebugFilters = null;
-                this.textBoxDebugContent.Text = allText.ToString();
+				_filtersViewModel.ClearFilters();
+				Settings.Default.SnoopDebugFilters = null;
+                DebugContent.Text = _allText.ToString();
 			}
 		}
 
 		private void buttonSetFilters_Click(object sender, RoutedEventArgs e)
 		{
-			SetFiltersWindow setFiltersWindow = new SetFiltersWindow(filtersViewModel);
-			setFiltersWindow.Topmost = true;
-			setFiltersWindow.Owner = Window.GetWindow(this);
-			setFiltersWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-			setFiltersWindow.ShowDialog();
+		    var setFiltersWindow = new SetFiltersWindow(_filtersViewModel)
+		    {
+		        Topmost = true,
+		        Owner = Window.GetWindow(this),
+		        WindowStartupLocation = WindowStartupLocation.CenterOwner
+		    };
+		    setFiltersWindow.ShowDialog();
 
-            string[] allLines = allText.ToString().Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            this.textBoxDebugContent.Clear();
+            string[] allLines = _allText.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            DebugContent.Clear();
             foreach (string line in allLines)
             {
-                if (filtersViewModel.FilterMatches(line))
-                    this.textBoxDebugContent.AppendText(line + Environment.NewLine);
+                if (_filtersViewModel.FilterMatches(line))
+                {
+                    DebugContent.AppendText(line + Environment.NewLine);
+                }
             }
 		}
 
 		private void comboBoxPresentationTraceLevel_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			if (this.comboBoxPresentationTraceLevel == null || this.comboBoxPresentationTraceLevel.Items == null || this.comboBoxPresentationTraceLevel.Items.Count <= this.comboBoxPresentationTraceLevel.SelectedIndex || this.comboBoxPresentationTraceLevel.SelectedIndex < 0)
+			if (ComboBoxPresentationTraceLevel == null || ComboBoxPresentationTraceLevel.Items == null || ComboBoxPresentationTraceLevel.Items.Count <= ComboBoxPresentationTraceLevel.SelectedIndex || ComboBoxPresentationTraceLevel.SelectedIndex < 0)
 				return;
 
-			var selectedComboBoxItem = this.comboBoxPresentationTraceLevel.Items[this.comboBoxPresentationTraceLevel.SelectedIndex] as ComboBoxItem;
+			var selectedComboBoxItem = ComboBoxPresentationTraceLevel.Items[ComboBoxPresentationTraceLevel.SelectedIndex] as ComboBoxItem;
 			if (selectedComboBoxItem == null || selectedComboBoxItem.Tag == null)
 				return;
 

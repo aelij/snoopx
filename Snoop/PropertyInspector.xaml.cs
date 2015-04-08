@@ -1,25 +1,22 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Threading;
-using System.Collections;
-using System.Reflection;
-using Snoop.Infrastructure;
+using System.Linq;
 using System.Text;
+using System.Windows;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Threading;
+using Snoop.Infrastructure;
+using Snoop.Properties;
 
 namespace Snoop
 {
@@ -33,22 +30,22 @@ namespace Snoop
 
 		public PropertyInspector()
 		{
-			propertyFilter.SelectedFilterSet = AllFilterSets[0];
+			_propertyFilter.SelectedFilterSet = AllFilterSets[0];
 				
-			this.InitializeComponent();
+			InitializeComponent();
 
-			this.inspector = this.PropertyGrid;
-			this.inspector.Filter = this.propertyFilter;
+			_inspector = PropertyGrid;
+			_inspector.Filter = _propertyFilter;
 
-			this.CommandBindings.Add(new CommandBinding(PropertyInspector.SnipXamlCommand, this.HandleSnipXaml, this.CanSnipXaml));
-			this.CommandBindings.Add(new CommandBinding(PropertyInspector.PopTargetCommand, this.HandlePopTarget, this.CanPopTarget));
-			this.CommandBindings.Add(new CommandBinding(PropertyInspector.DelveCommand, this.HandleDelve, this.CanDelve));
-			this.CommandBindings.Add(new CommandBinding(PropertyInspector.DelveBindingCommand, this.HandleDelveBinding, this.CanDelveBinding));
-			this.CommandBindings.Add(new CommandBinding(PropertyInspector.DelveBindingExpressionCommand, this.HandleDelveBindingExpression, this.CanDelveBindingExpression));
+			CommandBindings.Add(new CommandBinding(SnipXamlCommand, HandleSnipXaml, CanSnipXaml));
+			CommandBindings.Add(new CommandBinding(PopTargetCommand, HandlePopTarget, CanPopTarget));
+			CommandBindings.Add(new CommandBinding(DelveCommand, HandleDelve, CanDelve));
+			CommandBindings.Add(new CommandBinding(DelveBindingCommand, HandleDelveBinding, CanDelveBinding));
+			CommandBindings.Add(new CommandBinding(DelveBindingExpressionCommand, HandleDelveBindingExpression, CanDelveBindingExpression));
 
 			// watch for mouse "back" button
-			this.MouseDown += new MouseButtonEventHandler(MouseDownHandler);
-			this.KeyDown += new KeyEventHandler(PropertyInspector_KeyDown);
+			MouseDown += MouseDownHandler;
+			KeyDown += PropertyInspector_KeyDown;
 		}
 
 		public bool NameValueOnly
@@ -59,10 +56,10 @@ namespace Snoop
 			}
 			set
 			{
-				this.PropertyGrid.NameValueOnly = value;
+				PropertyGrid.NameValueOnly = value;
 			}
 		}
-		private bool _nameValueOnly = false;
+		private readonly bool _nameValueOnly = false;
 
 		private void HandleSnipXaml(object sender, ExecutedRoutedEventArgs e)
 		{
@@ -87,8 +84,8 @@ namespace Snoop
 
 		public object RootTarget
 		{
-			get { return this.GetValue(PropertyInspector.RootTargetProperty); }
-			set { this.SetValue(PropertyInspector.RootTargetProperty, value); }
+			get { return GetValue(RootTargetProperty); }
+			set { SetValue(RootTargetProperty, value); }
 		}
 		public static readonly DependencyProperty RootTargetProperty =
 			DependencyProperty.Register
@@ -96,13 +93,13 @@ namespace Snoop
 				"RootTarget",
 				typeof(object),
 				typeof(PropertyInspector),
-				new PropertyMetadata(PropertyInspector.HandleRootTargetChanged)
+				new PropertyMetadata(HandleRootTargetChanged)
 			);
 		private static void HandleRootTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			PropertyInspector inspector = (PropertyInspector)d;
 
-			inspector.inspectStack.Clear();
+			inspector._inspectStack.Clear();
 			inspector.Target = e.NewValue;
 
 			inspector._delvePathList.Clear();
@@ -111,8 +108,8 @@ namespace Snoop
 
 		public object Target
 		{
-			get { return this.GetValue(PropertyInspector.TargetProperty); }
-			set { this.SetValue(PropertyInspector.TargetProperty, value); }
+			get { return GetValue(TargetProperty); }
+			set { SetValue(TargetProperty, value); }
 		}
 
 		public static readonly DependencyProperty TargetProperty =
@@ -121,7 +118,7 @@ namespace Snoop
 				"Target",
 				typeof(object),
 				typeof(PropertyInspector),
-				new PropertyMetadata(PropertyInspector.HandleTargetChanged)
+				new PropertyMetadata(HandleTargetChanged)
 			);
 
 		private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -130,7 +127,7 @@ namespace Snoop
 			inspector.OnPropertyChanged("Type");
 
 			if (e.NewValue != null)
-				inspector.inspectStack.Add(e.NewValue);
+				inspector._inspectStack.Add(e.NewValue);
 		}
 
 
@@ -140,18 +137,13 @@ namespace Snoop
 
 			foreach (var propInfo in _delvePathList)
 			{
-				int collectionIndex;
-				if ((collectionIndex = propInfo.CollectionIndex()) >= 0)
-				{
-					delvePath.Append(string.Format("[{0}]", collectionIndex));
-				}
-				else
-				{
-					delvePath.Append(string.Format(".{0}", propInfo.DisplayName));
-				}
+			    int collectionIndex;
+			    delvePath.Append((collectionIndex = propInfo.CollectionIndex()) >= 0
+			        ? string.Format("[{0}]", collectionIndex)
+			        : string.Format(".{0}", propInfo.DisplayName));
 			}
 
-			return delvePath.ToString();
+		    return delvePath.ToString();
 		}
 
 		private string GetCurrentTypeName(Type rootTargetType)
@@ -162,16 +154,13 @@ namespace Snoop
 				ISkipDelve skipDelve = _delvePathList[_delvePathList.Count - 1].Value as ISkipDelve;
 				if (skipDelve != null && skipDelve.NextValue != null && skipDelve.NextValueType != null)
 				{
-					return skipDelve.NextValueType.ToString();//we want to make this "future friendly", so we take into account that the string value of the property type may change.
+					return skipDelve.NextValueType.ToString();
+                    //we want to make this "future friendly",
+                    //so we take into account that the string value of the property type may change.
 				}
-				else if (_delvePathList[_delvePathList.Count - 1].Value != null)
-				{
-					type = _delvePathList[_delvePathList.Count - 1].Value.GetType().ToString();
-				}
-				else
-				{
-					type = _delvePathList[_delvePathList.Count - 1].PropertyType.ToString();
-				}
+			    type = _delvePathList[_delvePathList.Count - 1].Value != null
+			        ? _delvePathList[_delvePathList.Count - 1].Value.GetType().ToString()
+			        : _delvePathList[_delvePathList.Count - 1].PropertyType.ToString();
 			}
 			else if (_delvePathList.Count == 0)
 			{
@@ -188,10 +177,10 @@ namespace Snoop
 		{
 			get
 			{
-				if (this.RootTarget == null)
+				if (RootTarget == null)
 					return "object is NULL";
 
-				Type rootTargetType = this.RootTarget.GetType();
+				Type rootTargetType = RootTarget.GetType();
 				string delvePath = GetDelvePath(rootTargetType);
 				string type = GetCurrentTypeName(rootTargetType);
 
@@ -203,20 +192,20 @@ namespace Snoop
 		{
 			get
 			{
-				if (this.Target != null)
-					return this.Target.GetType();
+				if (Target != null)
+					return Target.GetType();
 				return null;
 			}
 		}
 
 		public void PushTarget(object target)
 		{
-			this.Target = target;
+			Target = target;
 		}
 		public void SetTarget(object target)
 		{
-			this.inspectStack.Clear();
-			this.Target = target;
+			_inspectStack.Clear();
+			Target = target;
 		}
 
 		private void HandlePopTarget(object sender, ExecutedRoutedEventArgs e)
@@ -226,22 +215,22 @@ namespace Snoop
 
 		private void PopTarget()
 		{
-			if (this.inspectStack.Count > 1)
+			if (_inspectStack.Count > 1)
 			{
-				this.Target = this.inspectStack[this.inspectStack.Count - 2];
-				this.inspectStack.RemoveAt(this.inspectStack.Count - 2);
-				this.inspectStack.RemoveAt(this.inspectStack.Count - 2);
+				Target = _inspectStack[_inspectStack.Count - 2];
+				_inspectStack.RemoveAt(_inspectStack.Count - 2);
+				_inspectStack.RemoveAt(_inspectStack.Count - 2);
 
-				if (this._delvePathList.Count > 0)
+				if (_delvePathList.Count > 0)
 				{
-					this._delvePathList.RemoveAt(this._delvePathList.Count - 1);
-					this.OnPropertyChanged("DelvePath");
+					_delvePathList.RemoveAt(_delvePathList.Count - 1);
+					OnPropertyChanged("DelvePath");
 				}
 			}
 		}
 		private void CanPopTarget(object sender, CanExecuteRoutedEventArgs e)
 		{
-			if (this.inspectStack.Count > 1)
+			if (_inspectStack.Count > 1)
 			{
 				e.Handled = true;
 				e.CanExecute = true;
@@ -262,7 +251,7 @@ namespace Snoop
 		{
 			var realTarget = GetRealTarget(((PropertyInformation)e.Parameter).Value);
 
-			if (realTarget != this.Target)
+			if (realTarget != Target)
 			{
 				// top 'if' statement is the delve path.
 				// we do this because without doing this, the delve path gets out of sync with the actual delves.
@@ -270,19 +259,19 @@ namespace Snoop
 				// and if it's equal to the current (original) target, we won't raise the property-changed event,
 				// and therefore, we don't add to our delveStack (the real one).
 
-				this._delvePathList.Add(((PropertyInformation)e.Parameter));
-				this.OnPropertyChanged("DelvePath");
+				_delvePathList.Add(((PropertyInformation)e.Parameter));
+				OnPropertyChanged("DelvePath");
 			}
 
-			this.PushTarget(realTarget);
+			PushTarget(realTarget);
 		}
 		private void HandleDelveBinding(object sender, ExecutedRoutedEventArgs e)
 		{
-			this.PushTarget(((PropertyInformation)e.Parameter).Binding);
+			PushTarget(((PropertyInformation)e.Parameter).Binding);
 		}
 		private void HandleDelveBindingExpression(object sender, ExecutedRoutedEventArgs e)
 		{
-			this.PushTarget(((PropertyInformation)e.Parameter).BindingExpression);
+			PushTarget(((PropertyInformation)e.Parameter).BindingExpression);
 		}
 
 		private void CanDelve(object sender, CanExecuteRoutedEventArgs e)
@@ -306,33 +295,33 @@ namespace Snoop
 
 		public PropertyFilter PropertyFilter
 		{
-			get { return propertyFilter; }
+			get { return _propertyFilter; }
 		}
-		private PropertyFilter propertyFilter = new PropertyFilter(string.Empty, true);
+		private readonly PropertyFilter _propertyFilter = new PropertyFilter(string.Empty, true);
 
 		public string StringFilter
 		{
-			get { return this.propertyFilter.FilterString; }
+			get { return _propertyFilter.FilterString; }
 			set
 			{
-				this.propertyFilter.FilterString = value;
+				_propertyFilter.FilterString = value;
 
-				this.inspector.Filter = this.propertyFilter;
+				_inspector.Filter = _propertyFilter;
 
-				this.OnPropertyChanged("StringFilter");
+				OnPropertyChanged("StringFilter");
 			}
 		}
 
 		public bool ShowDefaults
 		{
-			get { return this.propertyFilter.ShowDefaults; }
+			get { return _propertyFilter.ShowDefaults; }
 			set
 			{
-				this.propertyFilter.ShowDefaults = value;
+				_propertyFilter.ShowDefaults = value;
 
-				this.inspector.Filter = this.propertyFilter;
+				_inspector.Filter = _propertyFilter;
 
-				this.OnPropertyChanged("ShowDefaults");
+				OnPropertyChanged("ShowDefaults");
 			}
 		}
 
@@ -361,10 +350,10 @@ namespace Snoop
 		/// </summary>
 		public PropertyFilterSet SelectedFilterSet
 		{
-			get { return propertyFilter.SelectedFilterSet; }
+			get { return _propertyFilter.SelectedFilterSet; }
 			set
 			{
-				propertyFilter.SelectedFilterSet = value;
+				_propertyFilter.SelectedFilterSet = value;
 				OnPropertyChanged("SelectedFilterSet");
 				
 				if (value == null)
@@ -375,7 +364,7 @@ namespace Snoop
 					var dlg = new EditUserFilters { UserFilters = CopyFilterSets(UserFilterSets) };
 
 					// set owning window to center over if we can find it up the tree
-					var snoopWindow = VisualTreeHelper2.GetAncestor<Window>(this);
+					var snoopWindow = VisualTreeHelperEx.GetAncestor<Window>(this);
 					if (snoopWindow != null)
 					{
 						dlg.Owner = snoopWindow;
@@ -403,7 +392,7 @@ namespace Snoop
 				}
 				else
 				{
-					this.inspector.Filter = this.propertyFilter;
+					_inspector.Filter = _propertyFilter;
 					OnPropertyChanged("SelectedFilterSet");
 				}
 			}
@@ -423,7 +412,7 @@ namespace Snoop
 
 					try
 					{
-						var userFilters = Properties.Settings.Default.PropertyFilterSets;
+						var userFilters = Settings.Default.PropertyFilterSets;
 						ret.AddRange(userFilters ?? _defaultFilterSets);
 					}
 					catch (Exception ex)
@@ -441,8 +430,8 @@ namespace Snoop
 			set
 			{
 				_filterSets = value;
-				Properties.Settings.Default.PropertyFilterSets = _filterSets;
-				Properties.Settings.Default.Save();
+				Settings.Default.PropertyFilterSets = _filterSets;
+				Settings.Default.Save();
 			}
 		}
 
@@ -465,7 +454,7 @@ namespace Snoop
 					{
 						DisplayName = "(Default)",
 						IsDefault = true,
-						IsEditCommand = false,
+						IsEditCommand = false
 					}
 				);
 				ret.Add
@@ -474,7 +463,7 @@ namespace Snoop
 					{
 						DisplayName = "Edit Filters...",
 						IsDefault = false,
-						IsEditCommand = true,
+						IsEditCommand = true
 					}
 				);
 				return ret.ToArray();
@@ -488,29 +477,20 @@ namespace Snoop
 		/// </summary>
 		public PropertyFilterSet[] CopyFilterSets(PropertyFilterSet[] source)
 		{
-			var ret = new List<PropertyFilterSet>();
-			foreach (PropertyFilterSet src in source)
-			{
-				ret.Add
-				(
-					new PropertyFilterSet
-					{
-						DisplayName = src.DisplayName,
-						IsDefault = src.IsDefault,
-						IsEditCommand = src.IsEditCommand,
-						Properties = (string[])src.Properties.Clone()
-					}
-				);
-			}
-
-			return ret.ToArray();
+		    return source.Select(src => new PropertyFilterSet
+		    {
+		        DisplayName = src.DisplayName,
+		        IsDefault = src.IsDefault,
+		        IsEditCommand = src.IsEditCommand,
+		        Properties = (string[]) src.Properties.Clone()
+		    }).ToArray();
 		}
 
 		/// <summary>
 		/// Cleanse the property names in each filter in the collection.
 		/// This includes removing spaces from each one, and making them all lower case
 		/// </summary>
-		private PropertyFilterSet[] CleansFilterPropertyNames(IEnumerable<PropertyFilterSet> collection)
+		private static PropertyFilterSet[] CleansFilterPropertyNames(ICollection<PropertyFilterSet> collection)
 		{
 			foreach (PropertyFilterSet filterItem in collection)
 			{
@@ -519,20 +499,19 @@ namespace Snoop
 			return collection.ToArray();
 		}
 
-		private List<object> inspectStack = new List<object>();
+		private readonly List<object> _inspectStack = new List<object>();
 		private PropertyFilterSet[] _filterSets;
-		private List<PropertyInformation> _delvePathList = new List<PropertyInformation>();
+		private readonly List<PropertyInformation> _delvePathList = new List<PropertyInformation>();
 
-		private Inspector inspector;
+		private readonly Inspector _inspector;
 
-		private readonly PropertyFilterSet[] _defaultFilterSets = new PropertyFilterSet[]
-		{
+		private readonly PropertyFilterSet[] _defaultFilterSets = {
 			new PropertyFilterSet
 			{
 				DisplayName = "Layout",
 				IsDefault = false,
 				IsEditCommand = false,
-				Properties = new string[]
+				Properties = new[]
 				{
 					"width", "height", "actualwidth", "actualheight", "margin", "padding", "left", "top"
 				}
@@ -542,7 +521,7 @@ namespace Snoop
 				DisplayName = "Grid/Dock",
 				IsDefault = false,
 				IsEditCommand = false,
-				Properties = new string[]
+				Properties = new[]
 				{
 					"grid", "dock"
 				}
@@ -552,7 +531,7 @@ namespace Snoop
 				DisplayName = "Color",
 				IsDefault = false,
 				IsEditCommand = false,
-				Properties = new string[]
+				Properties = new[]
 				{
 					"color", "background", "foreground", "borderbrush", "fill", "stroke"
 				}
@@ -562,7 +541,7 @@ namespace Snoop
 				DisplayName = "ItemsControl",
 				IsDefault = false,
 				IsEditCommand = false,
-				Properties = new string[]
+				Properties = new[]
 				{
 					"items", "selected"
 				}
@@ -573,9 +552,9 @@ namespace Snoop
 		public event PropertyChangedEventHandler PropertyChanged;
 		protected void OnPropertyChanged(string propertyName)
 		{
-			Debug.Assert(this.GetType().GetProperty(propertyName) != null);
-			if (this.PropertyChanged != null)
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			Debug.Assert(GetType().GetProperty(propertyName) != null);
+			if (PropertyChanged != null)
+				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 		}
 		#endregion
 	}

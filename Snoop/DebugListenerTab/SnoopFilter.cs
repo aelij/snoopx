@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 
 namespace Snoop.DebugListenerTab
@@ -9,9 +6,9 @@ namespace Snoop.DebugListenerTab
 	[Serializable]
 	public abstract class SnoopFilter : INotifyPropertyChanged
 	{
-		protected bool _isGrouped = false;
+		protected bool _isGrouped;
 		protected string _groupId = string.Empty;
-		protected bool _isDirty = false;
+		protected bool _isDirty;
 		protected bool _isInverse;
 		//protected string _isInverseText = string.Empty;
 
@@ -72,7 +69,7 @@ namespace Snoop.DebugListenerTab
 			set
 			{
 				_isGrouped = value;
-				this.RaisePropertyChanged("IsGrouped");
+				RaisePropertyChanged("IsGrouped");
 				GroupId = string.Empty;
 			}
 		}
@@ -86,7 +83,7 @@ namespace Snoop.DebugListenerTab
 			set
 			{
 				_groupId = value;
-				this.RaisePropertyChanged("GroupId");
+				RaisePropertyChanged("GroupId");
 			}
 		}
 
@@ -95,7 +92,7 @@ namespace Snoop.DebugListenerTab
 		protected void RaisePropertyChanged(string propertyName)
 		{
 			_isDirty = true;
-			var handler = this.PropertyChanged;
+			var handler = PropertyChanged;
 			if (handler != null)
 				handler(this, new PropertyChangedEventArgs(propertyName));
 		}

@@ -1,47 +1,48 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Windows;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace Snoop
 {
 	public class PropertyFilter
 	{
-		private string filterString;
-		private Regex filterRegex;
-		private bool showDefaults;
+		private string _filterString;
+		private Regex _filterRegex;
+		private bool _showDefaults;
 
 		public PropertyFilter(string filterString, bool showDefaults)
 		{
-			this.filterString = filterString.ToLower();
-			this.showDefaults = showDefaults;
+			_filterString = filterString.ToLower();
+			_showDefaults = showDefaults;
 		}
 
 		public string FilterString
 		{
-			get { return this.filterString; }
+			get { return _filterString; }
 			set
 			{
-				this.filterString = value.ToLower();
+				_filterString = value.ToLower();
 				try
 				{
-					this.filterRegex = new Regex(this.filterString, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+					_filterRegex = new Regex(_filterString, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
 				}
 				catch
 				{
-					this.filterRegex = null;
+					_filterRegex = null;
 				}
 			}
 		}
 
 		public bool ShowDefaults
 		{
-			get { return this.showDefaults; }
-			set { this.showDefaults = value; }
+			get { return _showDefaults; }
+			set { _showDefaults = value; }
 		}
 
 		public PropertyFilterSet SelectedFilterSet { get; set; }
@@ -56,42 +57,37 @@ namespace Snoop
 
 		public bool Show(PropertyInformation property)
 		{
-			// use a regular expression if we have one and we also have a filter string.
-			if (this.filterRegex != null && !string.IsNullOrEmpty(this.FilterString))
+		    // use a regular expression if we have one and we also have a filter string.
+			if (_filterRegex != null && !string.IsNullOrEmpty(FilterString))
 			{
 				return
 				(
-					this.filterRegex.IsMatch(property.DisplayName) ||
-					property.Property != null && this.filterRegex.IsMatch(property.Property.PropertyType.Name)
+					_filterRegex.IsMatch(property.DisplayName) ||
+					property.Property != null && _filterRegex.IsMatch(property.Property.PropertyType.Name)
 				);
 			}
 			// else just check for containment if we don't have a regular expression but we do have a filter string.
-			else if (!string.IsNullOrEmpty(this.FilterString))
-			{
-				if (property.DisplayName.ToLower().Contains(this.FilterString))
-					return true;
-				if (property.Property != null && property.Property.PropertyType.Name.ToLower().Contains(this.FilterString))
-					return true;
-				return false;
-			}
-			// else use the filter set if we have one of those.
-			else if (IsPropertyFilterSet)
-			{
-				if (SelectedFilterSet.IsPropertyInFilter(property.DisplayName))
-					return true;
-				else
-					return false;
-			}
-			// finally, if none of the above applies
-			// just check to see if we're not showing properties at their default values
-			// and this property is actually set to its default value
-			else
-			{
-				if (!this.ShowDefaults && property.ValueSource.BaseValueSource == BaseValueSource.Default)
-					return false;
-				else
-					return true;
-			}
+		    if (!string.IsNullOrEmpty(FilterString))
+		    {
+		        if (property.DisplayName.ToLower().Contains(FilterString))
+		            return true;
+		        if (property.Property != null && property.Property.PropertyType.Name.ToLower().Contains(FilterString))
+		            return true;
+		        return false;
+		    }
+		    // else use the filter set if we have one of those.
+		    if (IsPropertyFilterSet)
+		    {
+		        if (SelectedFilterSet.IsPropertyInFilter(property.DisplayName))
+		            return true;
+		        return false;
+		    }
+		        // finally, if none of the above applies
+		    // just check to see if we're not showing properties at their default values
+		    // and this property is actually set to its default value
+		    if (!ShowDefaults && property.ValueSource.BaseValueSource == BaseValueSource.Default)
+		        return false;
+		    return true;
 		}
 	}
 

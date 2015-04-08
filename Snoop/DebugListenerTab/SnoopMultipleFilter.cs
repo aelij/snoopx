@@ -1,46 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Snoop.DebugListenerTab
 {
 	[Serializable]
 	public class SnoopMultipleFilter : SnoopFilter
 	{
-		private List<SnoopFilter> _singleFilters = new List<SnoopFilter>();
+		private readonly List<SnoopFilter> _singleFilters = new List<SnoopFilter>();
 
 		public override bool FilterMatches(string debugLine)
 		{
-			foreach (var filter in _singleFilters)
-			{
-				if (!filter.FilterMatches(debugLine))
-					return false;
-			}
-			return true;
+		    return _singleFilters.All(filter => filter.FilterMatches(debugLine));
 		}
 
-		public override bool SupportsGrouping
+	    public override bool SupportsGrouping
 		{
-			get
-			{
-				return false;
-			}
+			get { return false; }
 		}
 
 		public override string GroupId
 		{
-			get
-			{
-				if (_singleFilters.Count == 0)
-					return string.Empty;
-
-				return _singleFilters[0].GroupId;
-			}
-			set
-			{
-				throw new NotSupportedException();
-			}
+			get { return _singleFilters.Count == 0 ? string.Empty : _singleFilters[0].GroupId; }
+		    set { throw new NotSupportedException(); }
 		}
 
 		public bool IsValidMultipleFilter
@@ -64,7 +46,7 @@ namespace Snoop.DebugListenerTab
 			_singleFilters.Remove(singleFilter);
 		}
 
-		public void AddRange(IEnumerable<SnoopFilter> filters, string groupID)
+		public void AddRange(ICollection<SnoopFilter> filters, string groupId)
 		{
 			foreach (var filter in filters)
 			{
@@ -72,7 +54,7 @@ namespace Snoop.DebugListenerTab
 					throw new NotSupportedException("The filter is not grouped");
 
 				filter.IsGrouped = true;
-				filter.GroupId = groupID;
+				filter.GroupId = groupId;
 			}
 			_singleFilters.AddRange(filters);
 		}

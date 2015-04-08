@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -15,39 +16,39 @@ namespace Snoop
 	{
 		public DelayedCall(DelayedHandler handler, DispatcherPriority priority)
 		{
-			this.handler = handler;
-			this.priority = priority;
+			_handler = handler;
+			_priority = priority;
 		}
 
 		public void Enqueue()
 		{
-			if (!this.queued)
+			if (!_queued)
 			{
-				this.queued = true;
+				_queued = true;
 
-				Dispatcher dispatcher = null;
+				Dispatcher dispatcher;
 				if (Application.Current == null || SnoopModes.MultipleDispatcherMode)
 					dispatcher = Dispatcher.CurrentDispatcher;
 				else
 					dispatcher = Application.Current.Dispatcher;
 
-				dispatcher.BeginInvoke(this.priority, new DispatcherOperationCallback(this.Process), null);
+				dispatcher.BeginInvoke(_priority, new DispatcherOperationCallback(Process), null);
 			}
 		}
 
 
 		private object Process(object arg)
 		{
-			this.queued = false;
+			_queued = false;
 
-			this.handler();
+			_handler();
 
 			return null;
 		}
 
-		private DelayedHandler handler;
-		private DispatcherPriority priority;
+		private readonly DelayedHandler _handler;
+		private readonly DispatcherPriority _priority;
 
-		private bool queued;
+		private bool _queued;
 	}
 }

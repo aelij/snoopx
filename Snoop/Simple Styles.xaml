@@ -14,17 +14,14 @@ All other rights reserved.
 	<!-- NormalBrush is used as the Background for SimpleButton, SimpleRepeatButton -->
 	<LinearGradientBrush x:Key="NormalBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#EEE" Offset="0.0"/>
-		<GradientStop Color="#CCC" Offset="1.0"/>
 	</LinearGradientBrush>
 	<LinearGradientBrush x:Key="NormalBorderBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#CCC" Offset="0.0"/>
-		<GradientStop Color="#444" Offset="1.0"/>
 	</LinearGradientBrush>
 	
 	<!-- LightBrush is used for content areas such as Menu, Tab Control background -->
 	<LinearGradientBrush x:Key="LightBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#FFF" Offset="0.0"/>
-		<GradientStop Color="#EEE" Offset="1.0"/>
 	</LinearGradientBrush>
 	
 	
@@ -32,21 +29,15 @@ All other rights reserved.
 	<!-- The Style provides default values on the control; the Template gives the elements for each control -->
 	
 	<LinearGradientBrush x:Key="MouseOverBrush" EndPoint="1,0.5" StartPoint="0,0.5">
-		<GradientStop Color="#FFFFFFFF" Offset="0.48"/>
 		<GradientStop Color="#FFB2E2FF" Offset="1"/>
-		<GradientStop Color="#FFBAE5FF" Offset="0"/>
 	</LinearGradientBrush>
 	
 	<!-- PressedBrush is used for Pressed in Button, Radio Button, CheckBox -->
 	<LinearGradientBrush x:Key="PressedBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#BBB" Offset="0.0"/>
-		<GradientStop Color="#EEE" Offset="0.1"/>
-		<GradientStop Color="#EEE" Offset="0.9"/>
-		<GradientStop Color="#FFF" Offset="1.0"/>
 	</LinearGradientBrush>
 	<LinearGradientBrush x:Key="PressedBorderBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#444" Offset="0.0"/>
-		<GradientStop Color="#888" Offset="1.0"/>
 	</LinearGradientBrush>
 
 	<!-- SelectedBackgroundBrush is used for the Selected item in ListBoxItem, ComboBoxItem-->
@@ -63,7 +54,6 @@ All other rights reserved.
 	<!-- DefaultedBorderBrush is used to show KeyBoardFocus -->
 	<LinearGradientBrush x:Key="DefaultedBorderBrush" EndPoint="0,1" StartPoint="0,0">
 		<GradientStop Color="#777" Offset="0.0"/>
-		<GradientStop Color="#000" Offset="1.0"/>
 	</LinearGradientBrush>
 
 	<SolidColorBrush x:Key="SolidBorderBrush" Color="#888"/>
@@ -280,7 +270,7 @@ All other rights reserved.
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type Thumb}">
 					<Grid Margin="0,0,0,0" x:Name="Grid">
-						<Rectangle HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="2" RadiusY="2" Fill="{DynamicResource NormalBrush}" Stroke="{DynamicResource NormalBorderBrush}"/>
+						<Rectangle HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="0" RadiusY="0" Fill="{DynamicResource NormalBrush}" Stroke="{DynamicResource NormalBorderBrush}"/>
 					</Grid>
 					<ControlTemplate.Triggers>
 						<Trigger Property="IsFocused" Value="True"/>
@@ -508,7 +498,7 @@ All other rights reserved.
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="*" x:Name="ContentRow"/>
 						</Grid.RowDefinitions>
-						<Border Grid.Row="0" x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,0,0">
+						<Border Grid.Row="0" x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0">
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="20"/>
@@ -518,7 +508,7 @@ All other rights reserved.
 								<ContentPresenter Grid.Column="1" Margin="4" RecognizesAccessKey="True" ContentSource="Header"/>
 							</Grid>
 						</Border>
-						<Border Visibility="Collapsed" Grid.Row="1" x:Name="ExpandSite" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1,0,1,1" CornerRadius="0,0,2,2">
+						<Border Visibility="Collapsed" Grid.Row="1" x:Name="ExpandSite" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1,0,1,1" CornerRadius="0">
 							<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Focusable="false"/>
 						</Border>
 					</Grid>
@@ -539,10 +529,8 @@ All other rights reserved.
 	
 	<LinearGradientBrush EndPoint="0.498,0.952" StartPoint="0.498,0.038" x:Key="DarkBlue">
 		<GradientStop Color="#FF021122" Offset="0"/>
-		<GradientStop Color="#FF052941" Offset="1"/>
 	</LinearGradientBrush>
 	<LinearGradientBrush EndPoint="0.503,0" StartPoint="0.503,0.925" x:Key="ShineBrush1">
-		<GradientStop Color="#0C5BBCFF" Offset="0"/>
 		<GradientStop Color="#3365C0FF" Offset="1"/>
 	</LinearGradientBrush>
 	
@@ -550,7 +538,6 @@ All other rights reserved.
 	
 	<LinearGradientBrush EndPoint="0,1" StartPoint="0,0" x:Key="MetalGrad">
 		<GradientStop Color="#FFEEEEEE" Offset="0"/>
-		<GradientStop Color="#FF596F7E" Offset="1"/>
 	</LinearGradientBrush>
 	
 	<!-- Simple ComboBox Toggle Button - This is used in ComboBox to expand and collapse the ComboBox Popup-->
@@ -581,22 +568,20 @@ All other rights reserved.
 				<RowDefinition Height="0.486*"/>
 				<RowDefinition Height="0.514*"/>
 			</Grid.RowDefinitions>
-			<Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="4" RadiusY="4" Stroke="{DynamicResource DarkBlue}" StrokeThickness="1" Grid.RowSpan="2">
+			<Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="0" RadiusY="0" Stroke="{DynamicResource DarkBlue}" StrokeThickness="1" Grid.RowSpan="2">
 				<Rectangle.Fill>
 					<DynamicResource ResourceKey="MetalGrad"/>
 				</Rectangle.Fill>
 			</Rectangle>
-			<Border HorizontalAlignment="Stretch" Width="Auto" Background="{DynamicResource DarkBlue}" CornerRadius="4,0,0,4" Grid.RowSpan="2"/>
-			<Rectangle Visibility="Collapsed" Stroke="{x:Null}" StrokeThickness="0" RadiusX="3" RadiusY="3" HorizontalAlignment="Stretch" Margin="0,0,2,1" x:Name="rectangle" Width="Auto" Height="Auto" Grid.RowSpan="2">
+			<Border HorizontalAlignment="Stretch" Width="Auto" Background="{DynamicResource DarkBlue}" CornerRadius="0" Grid.RowSpan="2"/>
+			<Rectangle Visibility="Collapsed" Stroke="{x:Null}" StrokeThickness="0" RadiusX="0" RadiusY="0" HorizontalAlignment="Stretch" Margin="0,0,2,1" x:Name="rectangle" Width="Auto" Height="Auto" Grid.RowSpan="2">
 				<Rectangle.Fill>
 					<LinearGradientBrush EndPoint="0.212,-0.3" StartPoint="-0.594,1.392">
-						<GradientStop Color="#000073E6" Offset="0"/>
-						<GradientStop Color="#03006EB9" Offset="1"/>
 						<GradientStop Color="#91037790" Offset="0.53"/>
 					</LinearGradientBrush>
 				</Rectangle.Fill>
 			</Rectangle>
-			<Border Margin="1,1,1,0" Background="{DynamicResource ShineBrush1}" CornerRadius="3,0,0,3"/>
+			<Border Margin="1,1,1,0" Background="{DynamicResource ShineBrush1}" CornerRadius="0"/>
 			<Path Fill="{x:Null}" Stretch="Fill" Stroke="{DynamicResource DeepBlueColorBrush}" StrokeDashCap="Flat" StrokeEndLineCap="Round" StrokeLineJoin="Round" StrokeMiterLimit="20" StrokeStartLineCap="Round" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,0,0,0" x:Name="path" VerticalAlignment="Center" Grid.Column="1" Data="M276.75,15.25 L282.25,21 287.25,15.25" Width="12" Height="8" Grid.RowSpan="2"/>
 		</Grid>
 		<ControlTemplate.Triggers>
@@ -609,9 +594,7 @@ All other rights reserved.
 				<Setter Property="Fill" TargetName="Rectangle">
 					<Setter.Value>
 						<LinearGradientBrush EndPoint="0.959,0" StartPoint="0.959,0.924">
-							<GradientStop Color="#FFFFFFFF" Offset="0.48"/>
 							<GradientStop Color="#FFB2E2FF" Offset="1"/>
-							<GradientStop Color="#FFBAE5FF" Offset="0"/>
 						</LinearGradientBrush>
 					</Setter.Value>
 				</Setter>
@@ -659,9 +642,7 @@ All other rights reserved.
 								<Border x:Name="DropDownBorder" BorderBrush="{x:Null}" BorderThickness="1">
 									<Border.Background>
 										<LinearGradientBrush EndPoint="0.993,0.032" StartPoint="0.007,0.968">
-											<GradientStop Color="#E5CDDDE4" Offset="0.508"/>
-											<GradientStop Color="#E5FFFFFF" Offset="1"/>
-											<GradientStop Color="#E5FFFFFF" Offset="0"/>
+											<GradientStop Color="#CDDDE4" Offset="0.508"/>
 										</LinearGradientBrush>
 									</Border.Background>
 								</Border>
@@ -686,7 +667,7 @@ All other rights reserved.
 							<Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
 						</Trigger>
 						<Trigger Property="AllowsTransparency" SourceName="Popup" Value="true">
-							<Setter Property="CornerRadius" Value="4" TargetName="DropDownBorder"/>
+							<Setter Property="CornerRadius" Value="0" TargetName="DropDownBorder"/>
 							<Setter Property="Margin" Value="0,2,0,0" TargetName="DropDownBorder"/>
 						</Trigger>
 						<Trigger Property="IsEditable" Value="true">
@@ -736,10 +717,10 @@ All other rights reserved.
 					<Grid MinHeight="14" MinWidth="200">
 					
 						<!-- This Border is the track. It must be named PART_Track -->
-						<Border x:Name="PART_Track" Background="{DynamicResource PressedBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="2"/>
+						<Border x:Name="PART_Track" Background="{DynamicResource PressedBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="0"/>
 						
 						<!-- This Border shows progress. It must be named PART_Indicator for the control to function -->
-						<Border HorizontalAlignment="Left" x:Name="PART_Indicator" Background="{DynamicResource MouseOverBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" CornerRadius="2"/>
+						<Border HorizontalAlignment="Left" x:Name="PART_Indicator" Background="{DynamicResource MouseOverBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" CornerRadius="0"/>
 					
 					</Grid>
 				</ControlTemplate>
@@ -756,7 +737,7 @@ All other rights reserved.
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type TextBox}">
 					<Grid>
-						<Border x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" Padding="2" CornerRadius="2">
+						<Border x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" Padding="2" CornerRadius="0">
 							
 							<!-- The implementation places the Content into the ScrollViewer. It must be named PART_ContentHost for the control to function -->
 							<ScrollViewer Margin="0" x:Name="PART_ContentHost" Style="{DynamicResource SimpleScrollViewer}" Background="{TemplateBinding Background}"/>
@@ -968,7 +949,7 @@ All other rights reserved.
 						The implementation knows to use this control because it is marked IsItemsHost = True -->
 						<TabPanel Grid.Row="0" Margin="0,0,4,-1" x:Name="HeaderPanel" Background="Transparent" IsItemsHost="True" Panel.ZIndex="1" KeyboardNavigation.TabIndex="1"/>
 						
-						<Border Grid.Row="1" x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="2" KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabNavigation="Local" KeyboardNavigation.TabIndex="2">
+						<Border Grid.Row="1" x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="0" KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabNavigation="Local" KeyboardNavigation.TabIndex="2">
 							
 							<!-- The implementation switches the content. This control must be named PART_SelectedContentHost -->
 							<ContentPresenter Margin="4" x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"/>
@@ -994,7 +975,7 @@ All other rights reserved.
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type TabItem}">
 					<Grid>
-						<Border Margin="0,0,-4,0" x:Name="Border" Background="{DynamicResource LightBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="2,12,0,0">
+						<Border Margin="0,0,-4,0" x:Name="Border" Background="{DynamicResource LightBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="0">
 							<ContentPresenter HorizontalAlignment="Center" Margin="12,2,12,2" x:Name="ContentSite" VerticalAlignment="Center" RecognizesAccessKey="True" ContentSource="Header"/>
 						</Border>
 					</Grid>
@@ -1057,7 +1038,7 @@ All other rights reserved.
 						
 						<!-- TickBar shows the ticks for Slider -->
 						<TickBar Visibility="Collapsed" x:Name="TopTick" Height="4" SnapsToDevicePixels="True" Placement="Top" Fill="{DynamicResource GlyphBrush}"/>
-						<Border Grid.Row="1" Margin="0" x:Name="Border" Height="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2"/>
+						<Border Grid.Row="1" Margin="0" x:Name="Border" Height="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0"/>
 						
 						<!-- The Track lays out the repeat buttons and thumb -->
 						<Track Grid.Row="1" x:Name="PART_Track">
@@ -1113,7 +1094,7 @@ All other rights reserved.
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type TreeView}">
 					<Grid>
-						<Border x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="1">
+						<Border x:Name="Border" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource SolidBorderBrush}" BorderThickness="1" CornerRadius="0">
 							<ScrollViewer Style="{DynamicResource SimpleScrollViewer}" Focusable="False" Background="{TemplateBinding Background}" Padding="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" CanContentScroll="False">
 								<ItemsPresenter/>
 							</ScrollViewer>

@@ -1,12 +1,10 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Collections.ObjectModel;
 
 namespace Snoop.Infrastructure
@@ -46,10 +44,7 @@ namespace Snoop.Infrastructure
                 {
                     return -1;
                 }
-                else
-                {
-                    return startIndex;
-                }
+                return startIndex;
             }
 
             int middle = (startIndex + endIndex) / 2;
@@ -65,10 +60,7 @@ namespace Snoop.Infrastructure
             {
                 return BinarySearch(collection, item, middle + 1, endIndex, comparer);
             }
-            else
-            {
-                return BinarySearch(collection, item, startIndex, middle - 1, comparer);
-            }
+            return BinarySearch(collection, item, startIndex, middle - 1, comparer);
         }
 
         public static int BinarySearch<T>(ObservableCollection<T> collection, T item, int startIndex, int endIndex)
@@ -85,10 +77,7 @@ namespace Snoop.Infrastructure
                 {
                     return -1;
                 }
-                else
-                {
-                    return startIndex;
-                }
+                return startIndex;
             }
 
             int middle = (startIndex + endIndex) / 2;
@@ -102,10 +91,7 @@ namespace Snoop.Infrastructure
             {
                 return BinarySearch(collection, item, middle + 1, endIndex);
             }
-            else
-            {
-                return BinarySearch(collection, item, startIndex, middle - 1);
-            }
+            return BinarySearch(collection, item, startIndex, middle - 1);
         }
 
         public static void InsertInOrder<T>(this ObservableCollection<T> collection, T item, Comparison<T> comparison)

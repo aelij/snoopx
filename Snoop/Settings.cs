@@ -1,7 +1,11 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
+
+using System.ComponentModel;
+using System.Configuration;
 
 namespace Snoop.Properties
 {
@@ -12,22 +16,12 @@ namespace Snoop.Properties
 	//  The SettingsSaving event is raised before the setting values are saved.
 	internal sealed partial class Settings
 	{
-		public Settings()
-		{
-			// // To add event handlers for saving and changing settings, uncomment the lines below:
-			//
-			// this.SettingChanging += this.SettingChangingEventHandler;
-			//
-			// this.SettingsSaving += this.SettingsSavingEventHandler;
-			//
-		}
-
-		private void SettingChangingEventHandler(object sender, System.Configuration.SettingChangingEventArgs e)
+	    private void SettingChangingEventHandler(object sender, SettingChangingEventArgs e)
 		{
 			// Add code to handle the SettingChangingEvent event here.
 		}
 
-		private void SettingsSavingEventHandler(object sender, System.ComponentModel.CancelEventArgs e)
+		private void SettingsSavingEventHandler(object sender, CancelEventArgs e)
 		{
 			// Add code to handle the SettingsSaving event here.
 		}

@@ -1,23 +1,14 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Reflection;
-using System.ComponentModel;
 
 namespace Snoop.MethodsTab
 {
@@ -44,14 +35,14 @@ namespace Snoop.MethodsTab
 
             listAssemblies.Sort();
 
-            this.comboBoxAssemblies.ItemsSource = listAssemblies;
+            ComboBoxAssemblies.ItemsSource = listAssemblies;
 
 
         }
 
         private void comboBoxAssemblies_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var assembly = ((AssemblyNamePair)this.comboBoxAssemblies.SelectedItem).Assembly;
+            var assembly = ((AssemblyNamePair)ComboBoxAssemblies.SelectedItem).Assembly;
 
             var types = assembly.GetTypes();
 
@@ -71,26 +62,26 @@ namespace Snoop.MethodsTab
 
             typePairs.Sort();
 
-            this.comboBoxTypes.ItemsSource = typePairs;
+            ComboBoxTypes.ItemsSource = typePairs;
         }
 
         private void buttonCreateInstance_Click(object sender, RoutedEventArgs e)
         {
-            var selectedType = ((TypeNamePair)this.comboBoxTypes.SelectedItem).Type;
+            var selectedType = ((TypeNamePair)ComboBoxTypes.SelectedItem).Type;
 
-            if (string.IsNullOrEmpty(this.textBoxConvertFrom.Text))
+            if (string.IsNullOrEmpty(TextBoxConvertFrom.Text))
             {
-                this.Instance = Activator.CreateInstance(selectedType);
+                Instance = Activator.CreateInstance(selectedType);
             }
             else
             {
                 var converter = TypeDescriptor.GetConverter(selectedType);
-                this.Instance = converter.ConvertFrom(this.textBoxConvertFrom.Text);
+                Instance = converter.ConvertFrom(TextBoxConvertFrom.Text);
             }
 
-            this.DialogResult = true;
+            DialogResult = true;
 
-            this.Close();
+            Close();
         }
 
         public object Instance
@@ -101,9 +92,9 @@ namespace Snoop.MethodsTab
 
         private void buttonCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false;
+            DialogResult = false;
 
-            this.Close();
+            Close();
         }
 
 

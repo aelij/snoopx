@@ -18,12 +18,11 @@ All other rights reserved.
 				<ResourceDictionary Source="Simple Styles.xaml"/>
 			</ResourceDictionary.MergedDictionaries>
 
-			<!-- appChooserButtonStyle -->
-			<Style x:Key="appChooserButtonStyle" TargetType="{x:Type Button}">
+			<Style x:Key="AppChooserButtonStyle" TargetType="{x:Type Button}">
 				<Setter Property="FocusVisualStyle">
 					<Setter.Value>
-						<Style>
-							<Setter Property="Control.Template">
+						<Style TargetType="Control">
+							<Setter Property="Template">
 								<Setter.Value>
 									<ControlTemplate>
 										<Rectangle
@@ -53,7 +52,6 @@ All other rights reserved.
 									Background="{TemplateBinding Background}"
 									BorderBrush="{TemplateBinding BorderBrush}"
 									BorderThickness="1,1,1,1"
-									CornerRadius="4,4,4,4"
 								/>
 								<ContentPresenter
 									x:Name="contentPresenter"
@@ -76,7 +74,7 @@ All other rights reserved.
 			</Style>
 
 			<!-- appChooserMinimizeCloseButtonStyle -->
-			<Style x:Key="appChooserMinimizeCloseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource appChooserButtonStyle}">
+			<Style x:Key="AppChooserMinimizeCloseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource AppChooserButtonStyle}">
 				<Setter Property="Background" Value="#FF5B0000"/>
 				<Setter Property="Foreground" Value="White"/>
 				<Style.Triggers>

@@ -1,4 +1,5 @@
 ﻿<!--
+(c) 2015 Eli Arbel
 (c) Copyright Cory Plotts.
 This source is subject to the Microsoft Public License (Ms-PL).
 Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -18,15 +19,15 @@ All other rights reserved.
 	SizeToContent="Width"
 >
 	<Window.Resources>
-		<Storyboard x:Key="dogAnimationStoryboard" RepeatBehavior="Forever" AutoReverse="True">
-			<PointAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="dogAnimated" Storyboard.TargetProperty="(Shape.Fill).(LinearGradientBrush.StartPoint)">
+		<Storyboard x:Key="DogAnimationStoryboard" RepeatBehavior="Forever" AutoReverse="True">
+			<PointAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="DogAnimated" Storyboard.TargetProperty="(Shape.Fill).(LinearGradientBrush.StartPoint)">
 				<SplinePointKeyFrame KeyTime="00:00:00" Value="-0.943,2.158"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.3" Value="0.057,2.158" KeySpline="0.5,0,0.5,1"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.35" Value="0.057,2.158"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.7" Value="-0.943,2.158" KeySpline="0.5,0,1,1"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.75" Value="-0.943,2.158"/>
 			</PointAnimationUsingKeyFrames>
-			<PointAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="dogAnimated" Storyboard.TargetProperty="(Shape.Fill).(LinearGradientBrush.EndPoint)">
+			<PointAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="DogAnimated" Storyboard.TargetProperty="(Shape.Fill).(LinearGradientBrush.EndPoint)">
 				<SplinePointKeyFrame KeyTime="00:00:00" Value="0.835,-1.356"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.3" Value="1.835,-1.356" KeySpline="0.5,0,0.5,1"/>
 				<SplinePointKeyFrame KeyTime="0:0:0.35" Value="1.835,-1.356"/>
@@ -38,7 +39,7 @@ All other rights reserved.
 
 	<Window.Triggers>
 		<EventTrigger RoutedEvent="FrameworkElement.Loaded">
-			<BeginStoryboard Storyboard="{StaticResource dogAnimationStoryboard}"/>
+			<BeginStoryboard Storyboard="{StaticResource DogAnimationStoryboard}"/>
 		</EventTrigger>
 	</Window.Triggers>
 
@@ -55,8 +56,8 @@ All other rights reserved.
 			HorizontalAlignment="Center"
 		>
 			<Path
-				x:Name="dogNormal"
-				Data="{DynamicResource snoopDogStreamGeometry}"
+				x:Name="DogNormal"
+				Data="{DynamicResource SnoopDogStreamGeometry}"
 				Stretch="Uniform"
 			>
 				<Path.Fill>
@@ -68,8 +69,8 @@ All other rights reserved.
 			</Path>
 
 			<Path
-				x:Name="dogAnimated"
-				Data="{DynamicResource snoopDogStreamGeometry}"
+				x:Name="DogAnimated"
+				Data="{DynamicResource SnoopDogStreamGeometry}"
 				Stretch="Uniform"
 				Stroke="White"
 				StrokeThickness="1"
@@ -91,7 +92,7 @@ All other rights reserved.
 			CornerRadius="4" VerticalAlignment="Center"
 		>
 			<TextBlock
-				x:Name="tbWindowName"
+				x:Name="TbWindowName"
 				TextTrimming="CharacterEllipsis"
 				Padding="3,0,3,1"
 			/>

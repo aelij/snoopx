@@ -1,12 +1,11 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Media;
 
 namespace Snoop.Infrastructure
@@ -25,22 +24,10 @@ namespace Snoop.Infrastructure
 		{
 			if (visual == null) return false;
 
-			foreach (var snoopVisual in _registeredSnoopVisualTreeRoots)
-			{
-				if
-				(
-					visual == snoopVisual ||
-					(
-						visual.Dispatcher == snoopVisual.Dispatcher &&
-						visual.IsDescendantOf(snoopVisual)
-					)
-				)
-				{
-					return true;
-				}
-			}
-
-			return false;
+		    return _registeredSnoopVisualTreeRoots.Any(
+		            snoopVisual =>
+		                ReferenceEquals(visual, snoopVisual) ||
+		                (visual.Dispatcher == snoopVisual.Dispatcher && visual.IsDescendantOf(snoopVisual)));
 		}
 
 		/// <summary>
@@ -61,6 +48,6 @@ namespace Snoop.Infrastructure
 			_registeredSnoopVisualTreeRoots.Remove(root);
 		}
 
-		private static List<Visual> _registeredSnoopVisualTreeRoots = new List<Visual>();
+		private static readonly List<Visual> _registeredSnoopVisualTreeRoots = new List<Visual>();
 	}
 }

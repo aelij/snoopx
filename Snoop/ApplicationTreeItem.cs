@@ -1,11 +1,12 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Windows.Media;
-using System.Windows;
 using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Media;
 
 namespace Snoop
 {
@@ -14,21 +15,17 @@ namespace Snoop
 		public ApplicationTreeItem(Application application, VisualTreeItem parent)
 			: base(application, parent)
 		{
-			this.application = application;
+			_application = application;
 		}
-
 
 		public override Visual MainVisual
 		{
-			get
-			{
-				return this.application.MainWindow;
-			}
+			get { return _application.MainWindow; }
 		}
 
 		protected override ResourceDictionary ResourceDictionary
 		{
-			get { return this.application.Resources; }
+			get { return _application.Resources; }
 		}
 
 		protected override void Reload(List<VisualTreeItem> toBeRemoved)
@@ -41,12 +38,12 @@ namespace Snoop
 			// however, you are still able to ctrl-shift mouse over the visuals in the visible window.
 			// when you do this, snoop reloads the visual tree with the visible window as the root (versus the application).
 
-			if (this.application.MainWindow != null)
+			if (_application.MainWindow != null)
 			{
 				bool foundMainWindow = false;
 				foreach (VisualTreeItem item in toBeRemoved)
 				{
-					if (item.Target == this.application.MainWindow)
+					if (item.Target == _application.MainWindow)
 					{
 						toBeRemoved.Remove(item);
 						item.Reload();
@@ -56,11 +53,11 @@ namespace Snoop
 				}
 
 				if (!foundMainWindow)
-					this.Children.Add(VisualTreeItem.Construct(this.application.MainWindow, this));
+					Children.Add(Construct(_application.MainWindow, this));
 			}
 		}
 
 
-		private Application application;
+		private readonly Application _application;
 	}
 }

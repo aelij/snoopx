@@ -1,4 +1,5 @@
 ﻿<!--
+(c) 2015 Eli Arbel
 (c) Copyright Cory Plotts.
 This source is subject to the Microsoft Public License (Ms-PL).
 Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -39,7 +40,7 @@ All other rights reserved.
 		<TextBox
 			Style="{x:Null}"
 			Grid.Row="2"
-			x:Name="_textBlockException"
+			x:Name="TextBlockException"
 			AcceptsReturn="True"
 			TextWrapping="NoWrap"
 			HorizontalScrollBarVisibility="Auto"
@@ -62,7 +63,7 @@ All other rights reserved.
  
 		<StackPanel Grid.Row="4" HorizontalAlignment="Center" Margin="0,10,0,0" Orientation="Horizontal">
 			<Button
-				x:Name="_buttonCopyToClipboard"
+				x:Name="ButtonCopyToClipboard"
 				Width="175"
 				Height="32"
 				Margin="0,0,15,0"
@@ -87,7 +88,7 @@ All other rights reserved.
 
 		<StackPanel Grid.Row="5" HorizontalAlignment="Center" Margin="0,40,0,0" Orientation="Horizontal">
 			<CheckBox
-				x:Name="_checkBoxRemember"
+				x:Name="CheckBoxRemember"
 				Grid.Row="5"
 				VerticalAlignment="Center"
 				Margin="0,0,10,0"

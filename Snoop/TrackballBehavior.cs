@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -20,75 +21,75 @@ namespace Snoop
 				throw new ArgumentNullException("viewport");
 			}
 
-			this.viewport = viewport;
-			this.lookAtPoint = lookAtPoint;
+			_viewport = viewport;
+			_lookAtPoint = lookAtPoint;
 
-			ProjectionCamera projectionCamera = this.viewport.Camera as ProjectionCamera;
+			ProjectionCamera projectionCamera = _viewport.Camera as ProjectionCamera;
 			if (projectionCamera != null)
 			{
-				Vector3D offset = projectionCamera.Position - this.lookAtPoint;
-				this.distance = offset.Length;
+				Vector3D offset = projectionCamera.Position - _lookAtPoint;
+				_distance = offset.Length;
 			}
 
-			viewport.MouseLeftButtonDown += this.Viewport_MouseLeftButtonDown;
-			viewport.MouseMove += this.Viewport_MouseMove;
-			viewport.MouseLeftButtonUp += this.Viewport_MouseLeftButtonUp;
-			viewport.MouseWheel += this.Viewport_MouseWheel;
+			viewport.MouseLeftButtonDown += Viewport_MouseLeftButtonDown;
+			viewport.MouseMove += Viewport_MouseMove;
+			viewport.MouseLeftButtonUp += Viewport_MouseLeftButtonUp;
+			viewport.MouseWheel += Viewport_MouseWheel;
 		}
 
 		public void Reset()
 		{
-			this.orientation = Quaternion.Identity;
-			this.zoom = 1;
-			this.UpdateCamera();
+			_orientation = Quaternion.Identity;
+			_zoom = 1;
+			UpdateCamera();
 		}
 
 		private void Viewport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			e.MouseDevice.Capture(this.viewport);
-			Point point = e.MouseDevice.GetPosition(this.viewport);
-			this.mouseDirection = GetDirectionFromPoint(point, this.viewport.RenderSize);
-			this.isRotating = true;
+			e.MouseDevice.Capture(_viewport);
+			Point point = e.MouseDevice.GetPosition(_viewport);
+			_mouseDirection = GetDirectionFromPoint(point, _viewport.RenderSize);
+			_isRotating = true;
 			e.Handled = true;
 		}
 		private void Viewport_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (this.isRotating)
+			if (_isRotating)
 			{
-				Point point = e.MouseDevice.GetPosition(this.viewport);
-				Vector3D newMouseDirection = GetDirectionFromPoint(point, this.viewport.RenderSize);
-				Quaternion q = GetRotationFromStartAndEnd(newMouseDirection, this.mouseDirection, 2);
-				this.orientation *= q;
-				this.mouseDirection = newMouseDirection;
+				Point point = e.MouseDevice.GetPosition(_viewport);
+				Vector3D newMouseDirection = GetDirectionFromPoint(point, _viewport.RenderSize);
+				Quaternion q = GetRotationFromStartAndEnd(newMouseDirection, _mouseDirection, 2);
+				_orientation *= q;
+				_mouseDirection = newMouseDirection;
 
-				this.UpdateCamera();
+				UpdateCamera();
 				e.Handled = true;
 			}
 		}
 		private void Viewport_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			this.isRotating = false;
+			_isRotating = false;
 			e.MouseDevice.Capture(null);
 			e.Handled = true;
 		}
 		private void Viewport_MouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			// Zoom in or out exponentially.
-			this.zoom *= Math.Pow(TrackballBehavior.ZoomFactor, e.Delta / 120.0);
-			this.UpdateCamera();
+			_zoom *= Math.Pow(ZoomFactor, e.Delta / 120.0);
+			UpdateCamera();
 			e.Handled = true;
 		}
 
 		private void UpdateCamera()
 		{
-			ProjectionCamera projectionCamera = this.viewport.Camera as ProjectionCamera;
+			ProjectionCamera projectionCamera = _viewport.Camera as ProjectionCamera;
 			if (projectionCamera != null)
 			{
 				Matrix3D matrix = Matrix3D.Identity;
-				matrix.Rotate(this.orientation);
+				matrix.Rotate(_orientation);
 				projectionCamera.LookDirection = new Vector3D(0, 0, 1) * matrix;
 				projectionCamera.UpDirection = new Vector3D(0, -1, 0) * matrix;
-				projectionCamera.Position = this.lookAtPoint - this.distance / this.zoom * projectionCamera.LookDirection;
+				projectionCamera.Position = _lookAtPoint - _distance / _zoom * projectionCamera.LookDirection;
 			}
 		}
 
@@ -104,10 +105,7 @@ namespace Snoop
 			{
 				return new Vector3D(dx, dy, -Math.Sqrt(2 - rSquared));
 			}
-			else
-			{
-				return new Vector3D(dx, dy, -1 / Math.Sqrt(rSquared));
-			}
+		    return new Vector3D(dx, dy, -1 / Math.Sqrt(rSquared));
 		}
 
 		private static Quaternion GetRotationFromStartAndEnd(Vector3D start, Vector3D end, double angleMultiplier)
@@ -119,47 +117,41 @@ namespace Snoop
 				// One or both of the input directions is close to zero in length.
 				return Quaternion.Identity;
 			}
-			else
-			{
-				// Both input directions have nonzero length.
-				Vector3D axis = Vector3D.CrossProduct(start, end);
-				double dotProduct = Vector3D.DotProduct(start, end) / factor;
-				double angle = Math.Acos(dotProduct < -1 ? -1 : dotProduct > 1 ? 1 : dotProduct);
+		    // Both input directions have nonzero length.
+		    Vector3D axis = Vector3D.CrossProduct(start, end);
+		    double dotProduct = Vector3D.DotProduct(start, end) / factor;
+		    double angle = Math.Acos(dotProduct < -1 ? -1 : dotProduct > 1 ? 1 : dotProduct);
 
-				if (axis.LengthSquared < 1e-12)
-				{
-					if (dotProduct > 0)
-					{
-						// The input directions are parallel, so no rotation is needed.
-						return Quaternion.Identity;
-					}
-					else
-					{
-						// The directions are antiparallel, and therefore a rotation
-						// of 180 degrees about any direction perpendicular to 'start'
-						// (or 'end') will rotate 'start' into 'end'.
-						//
-						// The following construction will guarantee that
-						// dot(axis, start) == 0.
-						//
-						axis = Vector3D.CrossProduct(start, new Vector3D(1, 0, 0));
-						if (axis.LengthSquared < 1e-12)
-						{
-							axis = Vector3D.CrossProduct(start, new Vector3D(0, 1, 0));
-						}
-					}
-				}
-				return new Quaternion(axis, angleMultiplier * angle * 180 / Math.PI);
-			}
+		    if (axis.LengthSquared < 1e-12)
+		    {
+		        if (dotProduct > 0)
+		        {
+		            // The input directions are parallel, so no rotation is needed.
+		            return Quaternion.Identity;
+		        }
+		        // The directions are antiparallel, and therefore a rotation
+		        // of 180 degrees about any direction perpendicular to 'start'
+		        // (or 'end') will rotate 'start' into 'end'.
+		        //
+		        // The following construction will guarantee that
+		        // dot(axis, start) == 0.
+		        //
+		        axis = Vector3D.CrossProduct(start, new Vector3D(1, 0, 0));
+		        if (axis.LengthSquared < 1e-12)
+		        {
+		            axis = Vector3D.CrossProduct(start, new Vector3D(0, 1, 0));
+		        }
+		    }
+		    return new Quaternion(axis, angleMultiplier * angle * 180 / Math.PI);
 		}
 
-		private Viewport3D viewport;
-		private Point3D lookAtPoint;
-		private double distance = 1;
-		private double zoom = 1;
-		private bool isRotating;
-		private Vector3D mouseDirection;
-		private Quaternion orientation = Quaternion.Identity;
+		private readonly Viewport3D _viewport;
+		private readonly Point3D _lookAtPoint;
+		private readonly double _distance = 1;
+		private double _zoom = 1;
+		private bool _isRotating;
+		private Vector3D _mouseDirection;
+		private Quaternion _orientation = Quaternion.Identity;
 
 		private const double ZoomFactor = 1.1;
 	}

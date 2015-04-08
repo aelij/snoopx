@@ -1,11 +1,12 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Markup;
 
 namespace Snoop
 {
@@ -13,26 +14,26 @@ namespace Snoop
 	{
 		public ResourceDictionaryItem(ResourceDictionary dictionary, VisualTreeItem parent): base(dictionary, parent)
 		{
-			this.dictionary = dictionary;
+			_dictionary = dictionary;
 		}
 
 		public override string ToString()
 		{
-			return this.Children.Count + " Resources";
+			return Children.Count + " Resources";
 		}
 
 		protected override void Reload(List<VisualTreeItem> toBeRemoved)
 		{
 			base.Reload(toBeRemoved);
 
-			foreach (object key in this.dictionary.Keys)
+			foreach (object key in _dictionary.Keys)
 			{
 				object target;
 				try
 				{
-					target = this.dictionary[key];
+					target = _dictionary[key];
 				}
-				catch (System.Windows.Markup.XamlParseException)
+				catch (XamlParseException)
 				{
 					// sometimes you can get a XamlParseException ... because the xaml you are Snoop(ing) is bad.
 					// e.g. I got this once when I was Snoop(ing) some xaml that was refering to an image resource that was no longer there.
@@ -60,25 +61,25 @@ namespace Snoop
 				}
 
 				if (!foundItem)
-					this.Children.Add(new ResourceItem(target, key, this));
+					Children.Add(new ResourceItem(target, key, this));
 			}
 		}
 
-		private ResourceDictionary dictionary;
+		private readonly ResourceDictionary _dictionary;
 	}
 
 	public class ResourceItem : VisualTreeItem
 	{
 		public ResourceItem(object target, object key, VisualTreeItem parent): base(target, parent)
 		{
-			this.key = key;
+			_key = key;
 		}
 
 		public override string ToString()
 		{
-			return this.key.ToString() + " (" + this.Target.GetType().Name + ")";
+			return _key + " (" + Target.GetType().Name + ")";
 		}
 
-		private object key;
+		private readonly object _key;
 	}
 }

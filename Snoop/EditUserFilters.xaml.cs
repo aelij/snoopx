@@ -1,15 +1,15 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace Snoop
 {
@@ -68,12 +68,12 @@ namespace Snoop
 		private void AddHandler(object sender, RoutedEventArgs e)
 		{
 			var newSet =
-				new PropertyFilterSet()
+				new PropertyFilterSet
 				{
 					DisplayName = "New Filter",
 					IsDefault = false,
 					IsEditCommand = false,
-					Properties = new String[] { "prop1,prop2" },
+					Properties = new[] { "prop1,prop2" }
 				};
 			ItemsSource.Add(newSet);
 
@@ -81,12 +81,12 @@ namespace Snoop
 			int index = ItemsSource.IndexOf(newSet);
 			if (index >= 0)
 			{
-				filterSetList.SelectedIndex = index;
+				FilterSetList.SelectedIndex = index;
 			}
 		}
 		private void DeleteHandler(object sender, RoutedEventArgs e)
 		{
-			var selected = filterSetList.SelectedItem as PropertyFilterSet;
+			var selected = FilterSetList.SelectedItem as PropertyFilterSet;
 			if (selected != null)
 			{
 				ItemsSource.Remove(selected);
@@ -95,7 +95,7 @@ namespace Snoop
 
 		private void UpHandler(object sender, RoutedEventArgs e)
 		{
-			int index = filterSetList.SelectedIndex;
+			int index = FilterSetList.SelectedIndex;
 			if (index <= 0)
 				return;
 
@@ -104,12 +104,12 @@ namespace Snoop
 			ItemsSource.Insert(index - 1, item);
 
 			// select the moved item
-			filterSetList.SelectedIndex = index - 1;
+			FilterSetList.SelectedIndex = index - 1;
 
 		}
 		private void DownHandler(object sender, RoutedEventArgs e)
 		{
-			int index = filterSetList.SelectedIndex;
+			int index = FilterSetList.SelectedIndex;
 			if (index >= ItemsSource.Count - 1)
 				return;
 
@@ -118,7 +118,7 @@ namespace Snoop
 			ItemsSource.Insert(index + 1, item);
 
 			// select the moved item
-			filterSetList.SelectedIndex = index + 1;
+			FilterSetList.SelectedIndex = index + 1;
 		}
 
 		private void SelectionChangedHandler(object sender, SelectionChangedEventArgs e)
@@ -133,7 +133,7 @@ namespace Snoop
 			MoveDown.IsEnabled = false;
 			DeleteItem.IsEnabled = false;
 
-			int index = filterSetList.SelectedIndex;
+			int index = FilterSetList.SelectedIndex;
 			if (index >= 0)
 			{
 				MoveDown.IsEnabled = true;
@@ -143,7 +143,7 @@ namespace Snoop
 			if (index > 0)
 				MoveUp.IsEnabled = true;
 
-			if (index == filterSetList.Items.Count - 1)
+			if (index == FilterSetList.Items.Count - 1)
 				MoveDown.IsEnabled = false;
 		}
 

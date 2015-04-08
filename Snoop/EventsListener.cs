@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -21,23 +22,23 @@ namespace Snoop
 	{
 		public EventsListener(Visual visual)
 		{
-			EventsListener.current = this;
-			this.visual = visual;
+			_current = this;
+			_visual = visual;
 
 			Type type = visual.GetType();
 
 			// Cannot unregister for events once we've registered, so keep the registration simple and only do it once.
 			for (Type baseType = type; baseType != null; baseType = baseType.BaseType)
 			{
-				if (!registeredTypes.ContainsKey(baseType))
+				if (!_registeredTypes.ContainsKey(baseType))
 				{
-					registeredTypes[baseType] = baseType;
+					_registeredTypes[baseType] = baseType;
 
 					RoutedEvent[] routedEvents = EventManager.GetRoutedEventsForOwner(baseType);
 					if (routedEvents != null)
 					{
 						foreach (RoutedEvent routedEvent in routedEvents)
-							EventManager.RegisterClassHandler(baseType, routedEvent, new RoutedEventHandler(EventsListener.HandleEvent), true);
+							EventManager.RegisterClassHandler(baseType, routedEvent, new RoutedEventHandler(HandleEvent), true);
 					}
 				}
 			}
@@ -45,65 +46,65 @@ namespace Snoop
 
 		public ObservableCollection<EventInformation> Events
 		{
-			get { return this.events; }
+			get { return _events; }
 		}
-		private ObservableCollection<EventInformation> events = new ObservableCollection<EventInformation>();
+		private readonly ObservableCollection<EventInformation> _events = new ObservableCollection<EventInformation>();
 
 		public static string Filter
 		{
-			get { return EventsListener.filter; }
+			get { return _filter; }
 			set
 			{
-				EventsListener.filter = value;
-				if (EventsListener.filter != null)
-					EventsListener.filter = EventsListener.filter.ToLower();
+				_filter = value;
+				if (_filter != null)
+					_filter = _filter.ToLower();
 			}
 		}
 
 		public static void Stop()
 		{
-			EventsListener.current = null;
+			_current = null;
 		}
 
 
 		private static void HandleEvent(object sender, RoutedEventArgs e)
 		{
-			if (EventsListener.current != null && sender == EventsListener.current.visual)
+			if (_current != null && sender == _current._visual)
 			{
-				if (string.IsNullOrEmpty(EventsListener.Filter) || e.RoutedEvent.Name.ToLower().Contains(EventsListener.Filter))
+				if (string.IsNullOrEmpty(Filter) || e.RoutedEvent.Name.ToLower().Contains(Filter))
 				{
-					EventsListener.current.events.Add(new EventInformation(e));
+					_current._events.Add(new EventInformation(e));
 
-					while (EventsListener.current.events.Count > 100)
-						EventsListener.current.events.RemoveAt(0);
+					while (_current._events.Count > 100)
+						_current._events.RemoveAt(0);
 				}
 			}
 		}
 
-		private static EventsListener current = null;
-		private Visual visual;
-
-		private static Dictionary<Type, Type> registeredTypes = new Dictionary<Type, Type>();
-		public static string filter = null;
+        private readonly Visual _visual;
+        
+        private static EventsListener _current;
+		private static readonly Dictionary<Type, Type> _registeredTypes = new Dictionary<Type, Type>();
+		private static string _filter;
 	}
 
 	public class EventInformation
 	{
 		public EventInformation(RoutedEventArgs evt)
 		{
-			this.evt = evt;
+			_evt = evt;
 		}
 
 		public IEnumerable Properties
 		{
-			get { return PropertyInformation.GetProperties(this.evt); }
+			get { return PropertyInformation.GetProperties(_evt); }
 		}
 
 		public override string ToString()
 		{
-			return string.Format("{0} Handled: {1} OriginalSource: {2}", evt.RoutedEvent.Name, evt.Handled, evt.OriginalSource);
+			return string.Format("{0} Handled: {1} OriginalSource: {2}", _evt.RoutedEvent.Name, _evt.Handled, _evt.OriginalSource);
 		}
 
-		private RoutedEventArgs evt;
+		private readonly RoutedEventArgs _evt;
 	}
 }

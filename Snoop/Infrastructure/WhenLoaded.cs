@@ -1,12 +1,10 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 
 namespace Snoop.Infrastructure
@@ -21,32 +19,32 @@ namespace Snoop.Infrastructure
 	{
 		public WhenLoaded(FrameworkElement target, Action<FrameworkElement> loadedAction)
 		{
-			this.target = target;
-			this.loadedAction = loadedAction;
+			_target = target;
+			_loadedAction = loadedAction;
 
 			DoAction();
 		}
 
 		private void DoAction()
 		{
-			if (this.target.IsLoaded)
+			if (_target.IsLoaded)
 			{
-				this.loadedAction(this.target);
+				_loadedAction(_target);
 			}
 			else
 			{
-				this.target.Loaded += TargetLoaded;
+				_target.Loaded += TargetLoaded;
 			}
 		}
 
 		private void TargetLoaded(object sender, RoutedEventArgs e)
 		{
-			this.target.Loaded -= TargetLoaded;
-			this.loadedAction(this.target);
+			_target.Loaded -= TargetLoaded;
+			_loadedAction(_target);
 		}
 
-		private readonly FrameworkElement target;
-		private readonly Action<FrameworkElement> loadedAction;
+		private readonly FrameworkElement _target;
+		private readonly Action<FrameworkElement> _loadedAction;
 	}
 
 	/// <summary>

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Snoop.DebugListenerTab
@@ -13,7 +10,7 @@ namespace Snoop.DebugListenerTab
 
 		public SnoopSingleFilter()
 		{
-			this.Text = string.Empty;
+			Text = string.Empty;
 		}
 
 		public FilterType FilterType { get; set; }
@@ -28,7 +25,7 @@ namespace Snoop.DebugListenerTab
 			set
 			{
 				_text = value;
-				this.RaisePropertyChanged("Text");
+				RaisePropertyChanged("Text");
 			}
 		}
 
@@ -73,15 +70,22 @@ namespace Snoop.DebugListenerTab
 			}
 		}
 
-		public object Clone()
-		{
-			SnoopSingleFilter newFilter = new SnoopSingleFilter();
-			newFilter._groupId = this._groupId;
-			newFilter._isGrouped = this._isGrouped;
-			newFilter._text = this._text;
-			newFilter.FilterType = this.FilterType;
-			newFilter._isInverse = this._isInverse;
-			return newFilter;
-		}
+	    object ICloneable.Clone()
+	    {
+	        return Clone();
+	    }
+
+	    public SnoopSingleFilter Clone()
+	    {
+	        var newFilter = new SnoopSingleFilter
+	        {
+	            _groupId = _groupId,
+	            _isGrouped = _isGrouped,
+	            _text = _text,
+	            FilterType = FilterType,
+	            _isInverse = _isInverse
+	        };
+	        return newFilter;
+	    }
 	}
 }

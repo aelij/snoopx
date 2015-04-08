@@ -19,11 +19,11 @@ All other rights reserved.
 				<ResourceDictionary Source="Icons.xaml"/>
 			</ResourceDictionary.MergedDictionaries>
 
-			<DrawingBrush x:Key="previewerSnoopDogDrawingBrush" Stretch="Uniform">
+			<DrawingBrush x:Key="PreviewerSnoopDogDrawingBrush" Stretch="Uniform">
 				<DrawingBrush.Drawing>
 					<DrawingGroup>
 						<DrawingGroup.Children>
-							<GeometryDrawing Brush="#FFE8E8E8" Geometry="{DynamicResource snoopDogStreamGeometry}"/>
+							<GeometryDrawing Brush="#FFE8E8E8" Geometry="{DynamicResource SnoopDogStreamGeometry}"/>
 						</DrawingGroup.Children>
 					</DrawingGroup>
 				</DrawingBrush.Drawing>
@@ -307,7 +307,7 @@ All other rights reserved.
 			Template="{DynamicResource ButtonLeft}"
 			Command="{x:Static my:Previewer.MagnifyCommand}"
 		>
-			<Image x:Name="Image" Source="{DynamicResource magnifyingGlassDrawingImage}"/>
+			<Image x:Name="Image" Source="{DynamicResource MagnifyingGlassDrawingImage}"/>
 			<Button.ToolTip>
 				<StackPanel>
 					<TextBlock Style="{x:Null}" Text="Bring up the Magnify window on"/>
@@ -325,7 +325,7 @@ All other rights reserved.
 			Template="{DynamicResource ButtonMiddle}"
 			IsChecked="{Binding IsActive}"
 		>
-			<Image Source="{DynamicResource powerDrawingImage}"/>
+			<Image Source="{DynamicResource PowerDrawingImage}"/>
 			<ToggleButton.ToolTip>
 				<StackPanel>
 					<TextBlock Style="{x:Null}" Text="Enable/disable preview area (i.e. the"/>
@@ -342,7 +342,7 @@ All other rights reserved.
 			Template="{DynamicResource ButtonRight}"
 			Command="{x:Static my:Previewer.ScreenshotCommand}"
 		>
-			<Image Margin="1" Source="{DynamicResource cameraDrawingImage}"/>
+			<Image Margin="1" Source="{DynamicResource CameraDrawingImage}"/>
 			<Button.ToolTip>
 				<TextBlock Style="{x:Null}" Text="Save the current preview as bitmap."/>
 			</Button.ToolTip>

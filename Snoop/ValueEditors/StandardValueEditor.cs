@@ -1,26 +1,22 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Windows;
 using System;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Data;
 
 namespace Snoop
 {
-	public partial class StandardValueEditor: ValueEditor
+	public class StandardValueEditor: ValueEditor
 	{
-		public StandardValueEditor()
+	    public string StringValue
 		{
-		}
-
-
-		public string StringValue
-		{
-			get { return (string)this.GetValue(StandardValueEditor.StringValueProperty); }
-			set { this.SetValue(StandardValueEditor.StringValueProperty, value); }
+			get { return (string)GetValue(StringValueProperty); }
+			set { SetValue(StringValueProperty, value); }
 		}
 		public static readonly DependencyProperty StringValueProperty =
 			DependencyProperty.Register
@@ -28,7 +24,7 @@ namespace Snoop
 				"StringValue",
 				typeof(string),
 				typeof(StandardValueEditor),
-				new PropertyMetadata(StandardValueEditor.HandleStringPropertyChanged)
+				new PropertyMetadata(HandleStringPropertyChanged)
 			);
 		private static void HandleStringPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
 		{
@@ -36,7 +32,7 @@ namespace Snoop
 		}
 		protected virtual void OnStringPropertyChanged(string newValue)
 		{
-			if (this.isUpdatingValue)
+			if (_isUpdatingValue)
 				return;
 
 			if (PropertyInfo != null)
@@ -44,11 +40,11 @@ namespace Snoop
 				PropertyInfo.IsValueChangedByUser = true;
 			}
 
-			Type targetType = this.PropertyType;
+			Type targetType = PropertyType;
 
 			if (targetType.IsAssignableFrom(typeof(string)))
 			{
-				this.Value = newValue;
+				Value = newValue;
 			}
 			else
 			{
@@ -70,33 +66,33 @@ namespace Snoop
 		{
 			if (!converter.CanConvertFrom(targetType) && string.IsNullOrEmpty(newValue))
 			{
-				this.Value = null;
+				Value = null;
 			}
 			else
 			{
-				this.Value = converter.ConvertFrom(newValue);
+				Value = converter.ConvertFrom(newValue);
 			}
 		}
 
 
 		protected override void OnValueChanged(object newValue)
 		{
-			this.isUpdatingValue = true;
+			_isUpdatingValue = true;
 
-			object value = this.Value;
+			object value = Value;
 			if (value != null)
-				this.StringValue = value.ToString();
+				StringValue = value.ToString();
 			else
-				this.StringValue = string.Empty;
+				StringValue = string.Empty;
 
-			this.isUpdatingValue = false;
+			_isUpdatingValue = false;
 
-			BindingExpression binding = BindingOperations.GetBindingExpression(this, StandardValueEditor.StringValueProperty);
+			BindingExpression binding = BindingOperations.GetBindingExpression(this, StringValueProperty);
 			if (binding != null)
 				binding.UpdateSource();
 		}
 
 
-		private bool isUpdatingValue = false;
+		private bool _isUpdatingValue;
 	}
 }

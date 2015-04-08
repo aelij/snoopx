@@ -1,24 +1,16 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Windows;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Controls;
-using Snoop.Infrastructure;
 using System.Reflection;
-using System.Linq;
-
+using System.Windows;
+using System.Windows.Controls;
 using Snoop.Converters;
 
 namespace Snoop.MethodsTab
@@ -31,11 +23,11 @@ namespace Snoop.MethodsTab
             DependencyPropertyDescriptor.FromProperty(RootTargetProperty, typeof(MethodsControl)).AddValueChanged(this, RootTargetChanged);
 
             //DependencyPropertyDescriptor.FromProperty(TargetProperty, typeof(MethodsControl)).AddValueChanged(this, TargetChanged);
-            DependencyPropertyDescriptor.FromProperty(ComboBox.SelectedValueProperty, typeof(ComboBox)).AddValueChanged(this.comboBoxMethods, comboBoxMethodChanged);
-            DependencyPropertyDescriptor.FromProperty(MethodsControl.IsSelectedProperty, typeof(MethodsControl)).AddValueChanged(this, IsSelectedChanged);
+            DependencyPropertyDescriptor.FromProperty(ComboBox.SelectedValueProperty, typeof(ComboBox)).AddValueChanged(ComboBoxMethods, ComboBoxMethodChanged);
+            DependencyPropertyDescriptor.FromProperty(IsSelectedProperty, typeof(MethodsControl)).AddValueChanged(this, IsSelectedChanged);
 
-            this._checkBoxUseDataContext.Checked += _checkBoxUseDataContext_Checked;
-            this._checkBoxUseDataContext.Unchecked += new RoutedEventHandler(_checkBoxUseDataContext_Unchecked);
+            CheckBoxUseDataContext.Checked += _checkBoxUseDataContext_Checked;
+            CheckBoxUseDataContext.Unchecked += _checkBoxUseDataContext_Unchecked;
         }
 
         void _checkBoxUseDataContext_Unchecked(object sender, RoutedEventArgs e)
@@ -50,7 +42,7 @@ namespace Snoop.MethodsTab
 
         private void ProcessCheckedProperty()
         {
-            if (!this.IsSelected || !this._checkBoxUseDataContext.IsChecked.HasValue || !(this.RootTarget is FrameworkElement))
+            if (!IsSelected || !CheckBoxUseDataContext.IsChecked.HasValue || !(RootTarget is FrameworkElement))
                 return;
 
             SetTargetToRootTarget();
@@ -58,19 +50,19 @@ namespace Snoop.MethodsTab
 
         private void SetTargetToRootTarget()
         {
-            if (this._checkBoxUseDataContext.IsChecked.Value && this.RootTarget is FrameworkElement && ((FrameworkElement)this.RootTarget).DataContext != null)
+            if (CheckBoxUseDataContext.IsChecked.Value && RootTarget is FrameworkElement && ((FrameworkElement)RootTarget).DataContext != null)
             {
-                this.Target = ((FrameworkElement)this.RootTarget).DataContext;
+                Target = ((FrameworkElement)RootTarget).DataContext;
             }
             else
             {
-                this.Target = this.RootTarget;
+                Target = RootTarget;
             }
         }
 
         private void IsSelectedChanged(object sender, EventArgs args)
         {
-            if (this.IsSelected)
+            if (IsSelected)
             {
                 //this.Target = this.RootTarget;
                 SetTargetToRootTarget();
@@ -79,7 +71,7 @@ namespace Snoop.MethodsTab
 
         public object RootTarget
         {
-            get { return (object)GetValue(RootTargetProperty); }
+            get { return GetValue(RootTargetProperty); }
             set { SetValue(RootTargetProperty, value); }
         }
 
@@ -89,10 +81,10 @@ namespace Snoop.MethodsTab
 
         private void RootTargetChanged(object sender, EventArgs e)
         {
-            if (this.IsSelected)
+            if (IsSelected)
             {
-                this._checkBoxUseDataContext.IsEnabled = (this.RootTarget is FrameworkElement) && ((FrameworkElement)this.RootTarget).DataContext != null;
-                this.SetTargetToRootTarget();
+                CheckBoxUseDataContext.IsEnabled = (RootTarget is FrameworkElement) && ((FrameworkElement)RootTarget).DataContext != null;
+                SetTargetToRootTarget();
             }
         }
 
@@ -119,11 +111,11 @@ namespace Snoop.MethodsTab
                 methodsControl.EnableOrDisableDataContextCheckbox();
 
                 var methodInfos = GetMethodInfos(methodsControl.Target);
-                methodsControl.comboBoxMethods.ItemsSource = methodInfos;
+                methodsControl.ComboBoxMethods.ItemsSource = methodInfos;
 
-                methodsControl.resultProperties.Visibility = Visibility.Collapsed;
-                methodsControl.resultStringContainer.Visibility = Visibility.Collapsed;
-                methodsControl.parametersContainer.Visibility = Visibility.Collapsed;
+                methodsControl.ResultProperties.Visibility = Visibility.Collapsed;
+                methodsControl.ResultStringContainer.Visibility = Visibility.Collapsed;
+                methodsControl.ParametersContainer.Visibility = Visibility.Collapsed;
 
                 //if this target has the previous method info, set it
                 for (int i = 0; i < methodInfos.Count && methodsControl._previousMethodInformation != null; i++)
@@ -131,7 +123,7 @@ namespace Snoop.MethodsTab
                     var methodInfo = methodInfos[i];
                     if (methodInfo.Equals(methodsControl._previousMethodInformation))
                     {
-                        methodsControl.comboBoxMethods.SelectedIndex = i;
+                        methodsControl.ComboBoxMethods.SelectedIndex = i;
                         break;
                     }
                 }
@@ -140,52 +132,52 @@ namespace Snoop.MethodsTab
 
         private void EnableOrDisableDataContextCheckbox()
         {
-            if (this._checkBoxUseDataContext.IsChecked.HasValue && this._checkBoxUseDataContext.IsChecked.Value)
+            if (CheckBoxUseDataContext.IsChecked.HasValue && CheckBoxUseDataContext.IsChecked.Value)
                 return;
 
-            if (!(this.Target is FrameworkElement) || ((FrameworkElement)this.Target).DataContext == null)
+            if (!(Target is FrameworkElement) || ((FrameworkElement)Target).DataContext == null)
             {
-                this._checkBoxUseDataContext.IsEnabled = false;
+                CheckBoxUseDataContext.IsEnabled = false;
             }
             else
             {
-                this._checkBoxUseDataContext.IsEnabled = true;
+                CheckBoxUseDataContext.IsEnabled = true;
             }
         }
 
-        private SnoopMethodInformation _previousMethodInformation = null;
-        private void comboBoxMethodChanged(object sender, EventArgs e)
+        private SnoopMethodInformation _previousMethodInformation;
+        private void ComboBoxMethodChanged(object sender, EventArgs e)
         {
-            var selectedMethod = this.comboBoxMethods.SelectedValue as SnoopMethodInformation;
-            if (selectedMethod == null || this.Target == null)
+            var selectedMethod = ComboBoxMethods.SelectedValue as SnoopMethodInformation;
+            if (selectedMethod == null || Target == null)
                 return;            
 
-            var parameters = selectedMethod.GetParameters(this.Target.GetType());
-            this.itemsControlParameters.ItemsSource = parameters;
+            var parameters = selectedMethod.GetParameters(Target.GetType());
+            ItemsControlParameters.ItemsSource = parameters;
 
-            this.parametersContainer.Visibility = parameters.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-            this.resultProperties.Visibility = this.resultStringContainer.Visibility = Visibility.Collapsed;
+            ParametersContainer.Visibility = parameters.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            ResultProperties.Visibility = ResultStringContainer.Visibility = Visibility.Collapsed;
 
             _previousMethodInformation = selectedMethod;
         }
 
         public object Target
         {
-            get { return (object)GetValue(TargetProperty); }
+            get { return GetValue(TargetProperty); }
             set { SetValue(TargetProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for Target.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TargetProperty =
-            DependencyProperty.Register("Target", typeof(object), typeof(MethodsControl), new UIPropertyMetadata(new PropertyChangedCallback(TargetChanged)));
+            DependencyProperty.Register("Target", typeof(object), typeof(MethodsControl), new UIPropertyMetadata(TargetChanged));
 
         public void InvokeMethodClick(object sender, RoutedEventArgs e)
         {
-            var selectedMethod = this.comboBoxMethods.SelectedValue as SnoopMethodInformation;
+            var selectedMethod = ComboBoxMethods.SelectedValue as SnoopMethodInformation;
             if (selectedMethod == null)
                 return;
 
-            object[] parameters = new object[this.itemsControlParameters.Items.Count];
+            object[] parameters = new object[ItemsControlParameters.Items.Count];
 
             if (!TryToCreateParameters(parameters))
                 return;
@@ -197,9 +189,9 @@ namespace Snoop.MethodsTab
         {
             try
             {
-                for (int index = 0; index < this.itemsControlParameters.Items.Count; index++)
+                for (int index = 0; index < ItemsControlParameters.Items.Count; index++)
                 {
-                    var paramInfo = this.itemsControlParameters.Items[index] as SnoopParameterInformation;
+                    var paramInfo = ItemsControlParameters.Items[index] as SnoopParameterInformation;
                     if (paramInfo == null)
                         return false;
 
@@ -232,32 +224,29 @@ namespace Snoop.MethodsTab
         {
             try
             {
-                var returnValue = selectedMethod.MethodInfo.Invoke(this.Target, parameters);
+                var returnValue = selectedMethod.MethodInfo.Invoke(Target, parameters);
 
                 if (returnValue == null)
                 {
                     SetNullReturnType(selectedMethod);
                     return;
                 }
-                else
-                {
-                    this.resultStringContainer.Visibility = this.textBlockResult.Visibility = this.textBlockResultLabel.Visibility = System.Windows.Visibility.Visible;                    
-                }
+                ResultStringContainer.Visibility = TextBlockResult.Visibility = TextBlockResultLabel.Visibility = Visibility.Visible;
 
-                this.textBlockResultLabel.Text = "Result as string: ";
-                this.textBlockResult.Text = returnValue.ToString();
+                TextBlockResultLabel.Text = "Result as string: ";
+                TextBlockResult.Text = returnValue.ToString();
 
                 var properties = returnValue.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 //var properties = PropertyInformation.GetAllProperties(returnValue, new Attribute[] { new PropertyFilterAttribute(PropertyFilterOptions.All) });
 
                 if (properties.Length == 0)
                 {
-                    this.resultProperties.Visibility = System.Windows.Visibility.Collapsed;
+                    ResultProperties.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    this.resultProperties.Visibility = System.Windows.Visibility.Visible;
-                    this.propertyInspector.RootTarget = returnValue;
+                    ResultProperties.Visibility = Visibility.Visible;
+                    PropertyInspector.RootTarget = returnValue;
                 }
             }
             catch (Exception ex)
@@ -271,15 +260,15 @@ namespace Snoop.MethodsTab
         {
             if (selectedMethod.MethodInfo.ReturnType == typeof(void))
             {
-                this.resultStringContainer.Visibility = this.resultProperties.Visibility = System.Windows.Visibility.Collapsed;
+                ResultStringContainer.Visibility = ResultProperties.Visibility = Visibility.Collapsed;
             }
             else
             {
-                this.resultProperties.Visibility = System.Windows.Visibility.Collapsed;
-                this.resultStringContainer.Visibility = System.Windows.Visibility.Visible;
-                this.textBlockResult.Text = string.Empty;
-                this.textBlockResultLabel.Text = "Method evaluated to null";
-                this.textBlockResult.Visibility = System.Windows.Visibility.Collapsed;
+                ResultProperties.Visibility = Visibility.Collapsed;
+                ResultStringContainer.Visibility = Visibility.Visible;
+                TextBlockResult.Text = string.Empty;
+                TextBlockResultLabel.Text = "Method evaluated to null";
+                TextBlockResult.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -310,19 +299,19 @@ namespace Snoop.MethodsTab
 
         private void ChangeTarget_Click(object sender, RoutedEventArgs e)
         {
-            if (this.RootTarget == null)
+            if (RootTarget == null)
                 return;
 
             var paramCreator = new ParameterCreator();
             paramCreator.TextBlockDescription.Text = "Delve into the new desired target by double-clicking on the property. Clicking OK will select the currently delved property to be the new target.";
             paramCreator.Title = "Change Target";
-            paramCreator.RootTarget = this.RootTarget;
+            paramCreator.RootTarget = RootTarget;
             paramCreator.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             paramCreator.ShowDialog();
 
             if (paramCreator.DialogResult.HasValue && paramCreator.DialogResult.Value)
             {
-                this.Target = paramCreator.SelectedTarget;
+                Target = paramCreator.SelectedTarget;
             }
         }
 

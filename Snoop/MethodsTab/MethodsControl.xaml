@@ -11,7 +11,7 @@ All other rights reserved.
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:local="clr-namespace:Snoop.MethodsTab"
-	xmlns:snoopNS="clr-namespace:Snoop"
+	xmlns:snoopNs="clr-namespace:Snoop"
 	xmlns:converters="clr-namespace:Snoop.Converters"
 	mc:Ignorable="d"
 	d:DesignWidth="420"
@@ -178,7 +178,7 @@ All other rights reserved.
 		</StackPanel>
 
 		<CheckBox
-			x:Name="_checkBoxUseDataContext"
+			x:Name="CheckBoxUseDataContext"
 			Grid.Row="1"
 		>
 			<TextBlock Style="{x:Null}" Text="Use DataContext Property"/>
@@ -192,11 +192,11 @@ All other rights reserved.
 				FontWeight="Bold"
 				Text="Method:"
 			/>
-			<ComboBox x:Name="comboBoxMethods" Width="350" Height="25"/>
+			<ComboBox x:Name="ComboBoxMethods" Width="350" Height="25"/>
 		</StackPanel>
 
 		<StackPanel
-			x:Name="parametersContainer"
+			x:Name="ParametersContainer"
 			Grid.Row="3"
 			Margin="0,10,0,10"
 			Visibility="Collapsed"
@@ -208,7 +208,7 @@ All other rights reserved.
 				Text="Parameters:"
 			/>
 			<ItemsControl
-				x:Name="itemsControlParameters"
+				x:Name="ItemsControlParameters"
 				Grid.Row="1"
 				Margin="0,10,0,0"
 				ItemTemplateSelector="{StaticResource SnoopParameterInformationTemplateSelector}"
@@ -226,14 +226,14 @@ All other rights reserved.
 		</Button>
 
 		<StackPanel
-			x:Name="resultStringContainer"
+			x:Name="ResultStringContainer"
 			Grid.Row="5"
 			Margin="0,20,0,0"
 			Orientation="Horizontal"
 			Visibility="Collapsed"
 		>
 			<TextBlock
-				x:Name="textBlockResultLabel"
+				x:Name="TextBlockResultLabel"
 				Style="{x:Null}"
 				VerticalAlignment="Center"
 				Margin="0,0,5,0"
@@ -241,7 +241,7 @@ All other rights reserved.
 				Text="Result as string:"
 			/>
 			<TextBox
-				x:Name="textBlockResult"
+				x:Name="TextBlockResult"
 				Style="{x:Null}"
 				Grid.Row="3"
 				VerticalAlignment="Center"
@@ -250,7 +250,7 @@ All other rights reserved.
 		</StackPanel>
 
 		<Grid
-			x:Name="resultProperties"
+			x:Name="ResultProperties"
 			Grid.Row="6"
 			Margin="0,25,0,0"
 			Visibility="Collapsed"
@@ -265,7 +265,7 @@ All other rights reserved.
 				FontWeight="Bold"
 				Text="Result Properties:"
 			/>
-			<snoopNS:PropertyInspector x:Name="propertyInspector" Grid.Row="1"/>
+			<snoopNs:PropertyInspector x:Name="PropertyInspector" Grid.Row="1"/>
 		</Grid>
 	</Grid>
 </UserControl>

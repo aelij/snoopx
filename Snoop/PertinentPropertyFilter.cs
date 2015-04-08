@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -13,14 +14,14 @@ namespace Snoop
 	{
 		public PertinentPropertyFilter(object target)
 		{
-			this.target = target;
-			this.element = this.target as FrameworkElement;
+			_target = target;
+			_element = _target as FrameworkElement;
 		}
 
 
 		public bool Filter(PropertyDescriptor property)
 		{
-			if (this.element == null)
+			if (_element == null)
 				return true;
 
 			// Filter the 20 stylistic set properties that I've never seen used.
@@ -37,43 +38,45 @@ namespace Snoop
 				if (dpd == null)
 					return false;
 
-				FrameworkElement element = this.element;
+				var localElement = _element;
 				do
 				{
-					element = element.Parent as FrameworkElement;
-					if (element != null && dpd.DependencyProperty.OwnerType.IsInstanceOfType(element))
+					localElement = localElement.Parent as FrameworkElement;
+					if (localElement != null && dpd.DependencyProperty.OwnerType.IsInstanceOfType(localElement))
 						return true;
 				}
-				while (attachedPropertyForChildren.IncludeDescendants && element != null);
+				while (attachedPropertyForChildren.IncludeDescendants && localElement != null);
 				return false;
 			}
-			else if (attachedPropertyForType != null)
-			{
-				// when using [AttachedPropertyBrowsableForType(typeof(IMyInterface))] and IMyInterface is not a DependencyObject, Snoop crashes.
-				// see http://snoopwpf.codeplex.com/workitem/6712
+		    if (attachedPropertyForType != null)
+		    {
+		        // when using [AttachedPropertyBrowsableForType(typeof(IMyInterface))] and IMyInterface is not a DependencyObject, Snoop crashes.
+		        // see http://snoopwpf.codeplex.com/workitem/6712
 
-				if (attachedPropertyForType.TargetType.IsSubclassOf(typeof(DependencyObject)))
-				{
-					DependencyObjectType doType = DependencyObjectType.FromSystemType(attachedPropertyForType.TargetType);
-					if (doType != null && doType.IsInstanceOfType(this.element))
-						return true;
-				}
+		        if (attachedPropertyForType.TargetType.IsSubclassOf(typeof(DependencyObject)))
+		        {
+		            DependencyObjectType doType = DependencyObjectType.FromSystemType(attachedPropertyForType.TargetType);
+		            if (doType.IsInstanceOfType(_element))
+		            {
+		                return true;
+		            }
+		        }
 
-				return false;
-			}
-			else if (attachedPropertyForAttribute != null)
-			{
-				Attribute dependentAttribute = TypeDescriptor.GetAttributes(this.target)[attachedPropertyForAttribute.AttributeType];
-				if (dependentAttribute != null)
-					return !dependentAttribute.IsDefaultAttribute();
-				return false;
-			}
+		        return false;
+		    }
+		    if (attachedPropertyForAttribute != null)
+		    {
+		        Attribute dependentAttribute = TypeDescriptor.GetAttributes(_target)[attachedPropertyForAttribute.AttributeType];
+		        if (dependentAttribute != null)
+		            return !dependentAttribute.IsDefaultAttribute();
+		        return false;
+		    }
 
-			return true;
+		    return true;
 		}
 
 
-		private object target;
-		private FrameworkElement element;
+		private readonly object _target;
+		private readonly FrameworkElement _element;
 	}
 }

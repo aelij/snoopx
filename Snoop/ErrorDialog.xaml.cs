@@ -1,20 +1,14 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Navigation;
 using Snoop.Infrastructure;
 
 namespace Snoop
@@ -28,15 +22,15 @@ namespace Snoop
 		{
 			InitializeComponent();
 
-			this.Loaded += ErrorDialog_Loaded;
-			this.Closed += ErrorDialog_Closed;
+			Loaded += ErrorDialog_Loaded;
+			Closed += ErrorDialog_Closed;
 		}
 
 		public Exception Exception { get; set; }
 
 		private void ErrorDialog_Loaded(object sender, RoutedEventArgs e)
 		{
-			this._textBlockException.Text = this.GetExceptionMessage();
+			TextBlockException.Text = GetExceptionMessage();
 
 			SnoopPartsRegistry.AddSnoopVisualTreeRoot(this);
 		}
@@ -49,7 +43,7 @@ namespace Snoop
 		{
 			try
 			{
-				Clipboard.SetText(this.GetExceptionMessage());
+				Clipboard.SetText(GetExceptionMessage());
 			}
 			catch (Exception ex)
 			{
@@ -57,11 +51,11 @@ namespace Snoop
 				MessageBox.Show(message, "Error copying to clipboard");
 			}
 		}
-		private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+		private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
 		{
 			try
 			{
-				System.Diagnostics.Process.Start(e.Uri.AbsoluteUri);
+				Process.Start(e.Uri.AbsoluteUri);
 			}
 			catch (Exception)
 			{
@@ -72,27 +66,27 @@ namespace Snoop
 
 		private void CloseDoNotMarkHandled_Click(object sender, RoutedEventArgs e)
 		{
-			this.DialogResult = false;
+			DialogResult = false;
 			if (CheckBoxRememberIsChecked())
 			{
 				SnoopModes.IgnoreExceptions = true;
 			}
-			this.Close();
+			Close();
 		}
 		private void CloseAndMarkHandled_Click(object sender, RoutedEventArgs e)
 		{
-			this.DialogResult = true;
+			DialogResult = true;
 			if (CheckBoxRememberIsChecked())
 			{
 				SnoopModes.SwallowExceptions = true;
 			}
-			this.Close();
+			Close();
 		}
 
 		private string GetExceptionMessage()
 		{
 			StringBuilder builder = new StringBuilder();
-			GetExceptionString(this.Exception, builder);
+			GetExceptionString(Exception, builder);
 			return builder.ToString();
 		}
 		private static void GetExceptionString(Exception exception, StringBuilder builder, bool isInner = false)
@@ -111,7 +105,7 @@ namespace Snoop
 
 		private bool CheckBoxRememberIsChecked()
 		{
-			return this._checkBoxRemember.IsChecked.HasValue && this._checkBoxRemember.IsChecked.Value;
+			return CheckBoxRemember.IsChecked.HasValue && CheckBoxRemember.IsChecked.Value;
 		}
 	}
 }

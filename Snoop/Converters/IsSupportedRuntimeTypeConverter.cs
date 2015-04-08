@@ -1,12 +1,12 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Windows.Data;
 
 namespace Snoop.Converters
@@ -19,32 +19,19 @@ namespace Snoop.Converters
 	{
 		public static readonly IsSupportedRuntimeTypeConverter Default = new IsSupportedRuntimeTypeConverter();
 
-		private static readonly string[] ExcludeTypeNames = { "LinearGradientBrush", "RadialGradientBrush", "TileBrush" };
+		private static readonly string[] _excludeTypeNames = { "LinearGradientBrush", "RadialGradientBrush", "TileBrush" };
 
-		#region IValueConverter Members
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			// value (object)	the runtime value - compare against known incompatible types (use list from config)
+		    // value (object)	the runtime value - compare against known incompatible types (use list from config)
 			// return (boolean)	whether the type is supported or not
 
-			if (value == null)
-			{
-				return false;
-			}
-
-			foreach (string excludeTypeName in ExcludeTypeNames)
-			{
-				if (value.GetType().Name == excludeTypeName)
-					return false;
-			}
-
-			return true;
+		    return value != null && _excludeTypeNames.All(excludeTypeName => value.GetType().Name != excludeTypeName);
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+	    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
-		#endregion
 	}
 }

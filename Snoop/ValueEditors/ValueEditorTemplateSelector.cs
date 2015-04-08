@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -14,31 +15,31 @@ namespace Snoop
 	{
 		public DataTemplate StandardTemplate
 		{
-			get { return this.standardTemplate; }
-			set { this.standardTemplate = value; }
+			get { return _standardTemplate; }
+			set { _standardTemplate = value; }
 		}
-		private DataTemplate standardTemplate;
+		private DataTemplate _standardTemplate;
 
 		public DataTemplate EnumTemplate
 		{
-			get { return this.enumTemplate; }
-			set { this.enumTemplate = value; }
+			get { return _enumTemplate; }
+			set { _enumTemplate = value; }
 		}
-		private DataTemplate enumTemplate;
+		private DataTemplate _enumTemplate;
 
 		public DataTemplate BoolTemplate
 		{
-			get { return this.boolTemplate; }
-			set { this.boolTemplate = value; }
+			get { return _boolTemplate; }
+			set { _boolTemplate = value; }
 		}
-		private DataTemplate boolTemplate;
+		private DataTemplate _boolTemplate;
 
 		public DataTemplate BrushTemplate
 		{
-			get { return this.brushTemplate; }
-			set { this.brushTemplate = value; }
+			get { return _brushTemplate; }
+			set { _brushTemplate = value; }
 		}
-		private DataTemplate brushTemplate;
+		private DataTemplate _brushTemplate;
 
 
 		public override DataTemplate SelectTemplate(object item, DependencyObject container)
@@ -46,16 +47,16 @@ namespace Snoop
 			PropertyInformation property = (PropertyInformation)item;
 
 			if (property.PropertyType.IsEnum)
-				return this.EnumTemplate;
-			else if (property.PropertyType.Equals(typeof(bool)))
-				return this.BoolTemplate;
-			else if ( property.PropertyType.IsGenericType 
-				&& Nullable.GetUnderlyingType( property.PropertyType ) == typeof(bool) )
-				return this.BoolTemplate;
-			else if (typeof(Brush).IsAssignableFrom(property.PropertyType))
-				return this.brushTemplate;
+				return EnumTemplate;
+		    if (property.PropertyType.Equals(typeof(bool)))
+		        return BoolTemplate;
+		    if ( property.PropertyType.IsGenericType 
+		         && Nullable.GetUnderlyingType( property.PropertyType ) == typeof(bool) )
+		        return BoolTemplate;
+		    if (typeof(Brush).IsAssignableFrom(property.PropertyType))
+		        return _brushTemplate;
 
-			return this.StandardTemplate;
+		    return StandardTemplate;
 		}
 	}
 }

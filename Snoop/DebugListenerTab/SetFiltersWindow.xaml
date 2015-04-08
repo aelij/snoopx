@@ -18,20 +18,20 @@
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
 			<!--<StackPanel>-->
-			<ListBox Name="listBoxFilters"  ItemsSource="{Binding Path=Filters}" SelectionMode="Extended"  AlternationCount="2">
+			<ListBox Name="ListBoxFilters"  ItemsSource="{Binding Path=Filters}" SelectionMode="Extended"  AlternationCount="2">
 				<ListBox.ContextMenu>
 					<ContextMenu>
-						<MenuItem Name="menuItemGroupFilters" Click="menuItemGroupFilters_Click">
+						<MenuItem Name="MenuItemGroupFilters" Click="menuItemGroupFilters_Click">
 							<MenuItem.Header>
 								<TextBlock Text="Group Filters"/>
 							</MenuItem.Header>
 						</MenuItem>
-						<MenuItem Name="menuItemClearFilterGroups" Click="menuItemClearFilterGroups_Click">
+						<MenuItem Name="MenuItemClearFilterGroups" Click="menuItemClearFilterGroups_Click">
 							<MenuItem.Header>
 								<TextBlock Text="Clear Filter Groups"/>
 							</MenuItem.Header>
 						</MenuItem>
-						<MenuItem Name="menuItemSetInverse" Click="menuItemSetInverse_Click">
+						<MenuItem Name="MenuItemSetInverse" Click="menuItemSetInverse_Click">
 							<MenuItem.Header>
 								<TextBlock Text="Set Inverse"/>
 							</MenuItem.Header>
@@ -99,11 +99,11 @@
 					</DataTemplate>
 				</ListBox.ItemTemplate>
 			</ListBox>
-			<Button Margin="0,10,0,0" Grid.Row="1" VerticalAlignment="Bottom" Name="buttonAddFilter" Click="buttonAddFilter_Click" Width="110" Height="25" HorizontalAlignment="Left">
+			<Button Margin="0,10,0,0" Grid.Row="1" VerticalAlignment="Bottom" Name="ButtonAddFilter" Click="buttonAddFilter_Click" Width="110" Height="25" HorizontalAlignment="Left">
 				<TextBlock Style="{x:Null}" Text="Add Another Filter"/>
 			</Button>
 		</Grid>
-		<Button Name="buttonSetFilter" Margin="10,0,0,0" Grid.Row="1" HorizontalAlignment="Left" Height="25" Width="110" Click="buttonSetFilter_Click">
+		<Button Name="ButtonSetFilter" Margin="10,0,0,0" Grid.Row="1" HorizontalAlignment="Left" Height="25" Width="110" Click="buttonSetFilter_Click">
 			<TextBlock Style="{x:Null}" Text="Set Filter"/>
 		</Button>
 	</Grid>

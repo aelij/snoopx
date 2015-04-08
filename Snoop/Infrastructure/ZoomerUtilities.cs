@@ -1,16 +1,13 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Controls;
 
 namespace Snoop.Infrastructure
 {
@@ -26,12 +23,12 @@ namespace Snoop.Infrastructure
                 FrameworkElement uiElement = (FrameworkElement)item;
                 return CreateRectangleForFrameworkElement(uiElement);
             }
-            else if (item is Visual)
+            if (item is Visual)
             {
                 Visual visual = (Visual)item;
                 return CreateRectangleForVisual(visual);
             }
-            else if (item is ResourceDictionary)
+            if (item is ResourceDictionary)
             {
                 StackPanel stackPanel = new StackPanel();
 
@@ -43,7 +40,7 @@ namespace Snoop.Infrastructure
                 }
                 return stackPanel;
             }
-            else if (item is Brush)
+            if (item is Brush)
             {
                 Rectangle rect = new Rectangle();
                 rect.Width = 10;
@@ -51,7 +48,7 @@ namespace Snoop.Infrastructure
                 rect.Fill = (Brush)item;
                 return rect;
             }
-            else if (item is ImageSource)
+            if (item is ImageSource)
             {
                 Image image = new Image();
                 image.Source = (ImageSource)item;

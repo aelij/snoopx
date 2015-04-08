@@ -1,16 +1,14 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Reflection;
-using System.Windows.Input;
 using System.ComponentModel;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Input;
 using Snoop.Infrastructure;
 
 namespace Snoop.MethodsTab
@@ -18,9 +16,9 @@ namespace Snoop.MethodsTab
     public class SnoopParameterInformation : DependencyObject
     {
 
-        private ParameterInfo _parameterInfo = null;
-        private ICommand _createCustomParameterCommand = null;
-        private ICommand _nullOutParameter = null;
+        private ParameterInfo _parameterInfo;
+        private ICommand _createCustomParameterCommand;
+        private ICommand _nullOutParameter;
 
         public TypeConverter TypeConverter
         {
@@ -38,7 +36,7 @@ namespace Snoop.MethodsTab
         {
             get
             {
-                return !this.IsEnum && (TypeConverter.GetType() == typeof(TypeConverter));
+                return !IsEnum && (TypeConverter.GetType() == typeof(TypeConverter));
             }
         }
 
@@ -46,7 +44,7 @@ namespace Snoop.MethodsTab
         {
             get
             {
-                return this.ParameterType.IsEnum;
+                return ParameterType.IsEnum;
             }
         }
 
@@ -62,7 +60,7 @@ namespace Snoop.MethodsTab
         {
             get
             {
-                return _nullOutParameter ?? (_nullOutParameter = new RelayCommand(x => this.ParameterValue = null));
+                return _nullOutParameter ?? (_nullOutParameter = new RelayCommand(x => ParameterValue = null));
             }
         }
 
@@ -75,7 +73,7 @@ namespace Snoop.MethodsTab
             }
             else
             {
-                typeSelector = new TypeSelector() { BaseType = parameterType };
+                typeSelector = new TypeSelector { BaseType = parameterType };
                 //typeSelector.BaseType = parameterType;
             }
 
@@ -90,7 +88,7 @@ namespace Snoop.MethodsTab
             paramCreator.Title = "Create parameter";
             paramCreator.TextBlockDescription.Text = "Modify the properties of the parameter. Press OK to finalize the parameter";
 
-            if (this.ParameterValue == null)
+            if (ParameterValue == null)
             {
                 var typeSelector = GetTypeSelector(ParameterType);
                 typeSelector.ShowDialog();
@@ -103,7 +101,7 @@ namespace Snoop.MethodsTab
             }
             else
             {
-                paramCreator.RootTarget = this.ParameterValue;
+                paramCreator.RootTarget = ParameterValue;
             }
 
             paramCreator.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -122,14 +120,14 @@ namespace Snoop.MethodsTab
             if (parameterInfo == null)
                 return;
 
-            this.DeclaringType = declaringType;
-            this.ParameterName = parameterInfo.Name;
-            this.ParameterType = parameterInfo.ParameterType;
-            if (this.ParameterType.IsValueType)
+            DeclaringType = declaringType;
+            ParameterName = parameterInfo.Name;
+            ParameterType = parameterInfo.ParameterType;
+            if (ParameterType.IsValueType)
             {
-                this.ParameterValue = Activator.CreateInstance(this.ParameterType);
+                ParameterValue = Activator.CreateInstance(ParameterType);
             }
-            TypeConverter = TypeDescriptor.GetConverter(this.ParameterType);
+            TypeConverter = TypeDescriptor.GetConverter(ParameterType);
         }
 
         public string ParameterName { get; set; }
@@ -138,7 +136,7 @@ namespace Snoop.MethodsTab
 
         public object ParameterValue
         {
-            get { return (object)GetValue(ParameterValueProperty); }
+            get { return GetValue(ParameterValueProperty); }
             set { SetValue(ParameterValueProperty, value); }
         }
 

@@ -1,13 +1,12 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
+using System.Windows;
 
 namespace Snoop.MethodsTab
 {
@@ -17,7 +16,7 @@ namespace Snoop.MethodsTab
         {
             InitializeComponent();
 
-            this.Loaded += new System.Windows.RoutedEventHandler(TypeSelector_Loaded);            
+            Loaded += TypeSelector_Loaded;            
         }
 
         //TODO: MOVE SOMEWHERE ELSE. MACIEK
@@ -52,13 +51,13 @@ namespace Snoop.MethodsTab
             set;
         }
 
-        private void TypeSelector_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private void TypeSelector_Loaded(object sender, RoutedEventArgs e)
         {
 
             if (DerivedTypes == null)
                 DerivedTypes = GetDerivedTypes(BaseType);
 
-            this.comboBoxTypes.ItemsSource = DerivedTypes;
+            ComboBoxTypes.ItemsSource = DerivedTypes;
         }
 
         public Type BaseType { get; set; }
@@ -69,17 +68,17 @@ namespace Snoop.MethodsTab
             private set;
         }
 
-        private void buttonCreateInstance_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void buttonCreateInstance_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true;
-            this.Instance = Activator.CreateInstance((Type)this.comboBoxTypes.SelectedItem);
-            this.Close();
+            DialogResult = true;
+            Instance = Activator.CreateInstance((Type)ComboBoxTypes.SelectedItem);
+            Close();
         }
 
-        private void buttonCancel_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void buttonCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false;
-            this.Close();
+            DialogResult = false;
+            Close();
         }
     }
 

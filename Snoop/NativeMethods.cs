@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -6,10 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 using System.Windows;
+using Microsoft.Win32.SafeHandles;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable FieldCanBeMadeReadOnly.Local
 
 namespace Snoop
 {
@@ -23,7 +27,7 @@ namespace Snoop
 				GCHandle handle = GCHandle.Alloc(windowList);
 				try
 				{
-					NativeMethods.EnumWindows(NativeMethods.EnumWindowsCallback, (IntPtr)handle);
+					EnumWindows(EnumWindowsCallback, (IntPtr)handle);
 				}
 				finally
 				{
@@ -36,7 +40,7 @@ namespace Snoop
 		public static Process GetWindowThreadProcess(IntPtr hwnd)
 		{
 			int processID;
-			NativeMethods.GetWindowThreadProcessId(hwnd, out processID);
+			GetWindowThreadProcessId(hwnd, out processID);
 
 			try
 			{
@@ -55,7 +59,7 @@ namespace Snoop
 			return true;
 		}
 
-		[StructLayoutAttribute(LayoutKind.Sequential)]
+		[StructLayout(LayoutKind.Sequential)]
 		public struct MODULEENTRY32
 		{
 			public uint dwSize;
@@ -82,7 +86,7 @@ namespace Snoop
 			[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
 			override protected bool ReleaseHandle()
 			{
-				return NativeMethods.CloseHandle(handle);
+				return CloseHandle(handle);
 			}
 		}
 
@@ -129,7 +133,7 @@ namespace Snoop
 		public static Point GetCursorPosition()
 		{
 			var pos = new Point();
-			var win32Point = new POINT();
+			var win32Point = new WindowPoint();
 			if (GetCursorPos(ref win32Point))
 			{
 				pos.X = win32Point.X;
@@ -140,7 +144,7 @@ namespace Snoop
 
 		public static IntPtr GetWindowUnderMouse()
 		{
-			POINT pt = new POINT();
+			WindowPoint pt = new WindowPoint();
 			if (GetCursorPos(ref pt))
 			{
 				return WindowFromPoint(pt);
@@ -150,20 +154,84 @@ namespace Snoop
 
 		public static Rect GetWindowRect(IntPtr hwnd)
 		{
-			RECT rect = new RECT();
+			WindowRect rect;
 			GetWindowRect(hwnd, out rect);
 			return new Rect(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
 		}
 
 		[DllImport("user32.dll")]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool GetCursorPos(ref POINT pt);
+		private static extern bool GetCursorPos(ref WindowPoint pt);
 		
 		[DllImport("user32.dll")]
-		private static extern IntPtr WindowFromPoint(POINT Point);
+		private static extern IntPtr WindowFromPoint(WindowPoint windowPoint);
 
 		[DllImport("user32.dll")]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+		static extern bool GetWindowRect(IntPtr hWnd, out WindowRect lpRect);
+
+	    [DllImport("user32.dll")]
+	    public static extern bool SetWindowPlacement(IntPtr hWnd, [In] ref WindowPlacement lpwndpl);
+
+	    [DllImport("user32.dll")]
+	    public static extern bool GetWindowPlacement(IntPtr hWnd, out WindowPlacement lpwndpl);
+
+	    public const int SW_SHOWNORMAL = 1;
+	    public const int SW_SHOWMINIMIZED = 2;
+
+
 	}
+
+    /// <summary>
+    /// Stores the position, size, and state of a window
+    /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowPlacement
+    {
+        public int Length;
+        public int Flags;
+        public int WindowState;
+        public WindowPoint MinimizedPosition;
+        public WindowPoint MaximizedPosition;
+        public WindowRect NormalPosition;
+    }
+
+    /// <summary>
+    /// Represents a point
+    /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowPoint
+    {
+        public int X;
+        public int Y;
+
+        public WindowPoint(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
+    /// <summary>
+    /// Represents coordinates of a rectangle
+    /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WindowRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+
+        public WindowRect(int left, int top, int right, int bottom)
+        {
+            Left = left;
+            Top = top;
+            Right = right;
+            Bottom = bottom;
+        }
+    }
 }

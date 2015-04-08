@@ -1,10 +1,11 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Windows;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace Snoop
 {
@@ -20,7 +21,7 @@ namespace Snoop
 		{
 			base.Reload(toBeRemoved);
 
-			ResourceDictionary resources = this.ResourceDictionary;
+			ResourceDictionary resources = ResourceDictionary;
 
 			if (resources != null && resources.Count != 0)
 			{
@@ -36,7 +37,7 @@ namespace Snoop
 					}
 				}
 				if (!foundItem)
-					this.Children.Add(VisualTreeItem.Construct(resources, this));
+					Children.Add(Construct(resources, this));
 			}
 		}
 	}

@@ -1,96 +1,106 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.Win32;
 
 namespace Snoop
 {
-	/// <summary>
-	/// Interaction logic for ScreenShotDialog.xaml
-	/// </summary>
-	public partial class ScreenshotDialog
-	{
-		public static readonly RoutedCommand SaveCommand = new RoutedCommand("Save", typeof(ScreenshotDialog));
-		public static readonly RoutedCommand CancelCommand = new RoutedCommand("Cancel", typeof(ScreenshotDialog));
+    /// <summary>
+    /// Interaction logic for ScreenShotDialog.xaml
+    /// </summary>
+    public partial class ScreenshotDialog
+    {
+        public static readonly RoutedCommand PrintCommand = new RoutedCommand("Print", typeof(ScreenshotDialog));
+        public static readonly RoutedCommand SaveCommand = new RoutedCommand("Save", typeof(ScreenshotDialog));
+        public static readonly RoutedCommand CancelCommand = new RoutedCommand("Cancel", typeof(ScreenshotDialog));
 
-		public ScreenshotDialog()
-		{
-			InitializeComponent();
+        public ScreenshotDialog()
+        {
+            InitializeComponent();
 
-			CommandBindings.Add(new CommandBinding(SaveCommand, this.HandleSave, this.HandleCanSave));
-			CommandBindings.Add(new CommandBinding(CancelCommand, this.HandleCancel, (x, y) => y.CanExecute = true));
-		}
+            CommandBindings.Add(new CommandBinding(PrintCommand, HandlePrint, HandleCanSave));
+            CommandBindings.Add(new CommandBinding(SaveCommand, HandleSave, HandleCanSave));
+            CommandBindings.Add(new CommandBinding(CancelCommand, HandleCancel, (x, y) => y.CanExecute = true));
+        }
 
-		#region FilePath Dependency Property
-		public string FilePath
-		{
-			get { return (string)GetValue(FilePathProperty); }
-			set { SetValue(FilePathProperty, value); }
-		}
-		public static readonly DependencyProperty FilePathProperty =
-			DependencyProperty.Register
-			(
-				"FilePath",
-				typeof(string),
-				typeof(ScreenshotDialog),
-				new UIPropertyMetadata(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\SnoopScreenshot.png")
-			);
+        private void HandlePrint(object sender, ExecutedRoutedEventArgs e)
+        {
+            var visual = DataContext as Visual;
+            if (visual == null) return;
 
-		#endregion
+            var printDialog = new PrintDialog();
+            if (printDialog.ShowDialog() == true)
+            {
+                printDialog.PrintVisual(visual, "SnoopScreenshot");
 
-		private void HandleCanSave(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (DataContext == null || !(DataContext is Visual))
-			{
-				e.CanExecute = false;
-				return;
-			}
+                Close();
+            }
+        }
 
-			e.CanExecute = true;
-		}
-		private void HandleSave(object sender, ExecutedRoutedEventArgs e)
-		{
-			SaveFileDialog fileDialog = new SaveFileDialog();
-			fileDialog.AddExtension = true;
-			fileDialog.CheckPathExists = true;
-			fileDialog.DefaultExt = "png";
-			fileDialog.FileName = FilePath;
+        #region FilePath Dependency Property
+        public string FilePath
+        {
+            get { return (string)GetValue(FilePathProperty); }
+            set { SetValue(FilePathProperty, value); }
+        }
+        public static readonly DependencyProperty FilePathProperty =
+            DependencyProperty.Register
+            (
+                "FilePath",
+                typeof(string),
+                typeof(ScreenshotDialog),
+                new UIPropertyMetadata(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\SnoopScreenshot.png")
+            );
 
-			if (fileDialog.ShowDialog(this).Value)
-			{
-				FilePath = fileDialog.FileName;
-				VisualCaptureUtil.SaveVisual
-				(
-					DataContext as Visual,
-					int.Parse
-					(
-						((TextBlock)((ComboBoxItem)dpiBox.SelectedItem).Content).Text
-					),
-					FilePath
-				);
+        #endregion
 
-				Close();
-			}
-		}
+        private void HandleCanSave(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (!(DataContext is Visual))
+            {
+                e.CanExecute = false;
+                return;
+            }
 
-		private void HandleCancel(object sender, ExecutedRoutedEventArgs e)
-		{
-			Close();
-		}
-	}
+            e.CanExecute = true;
+        }
+        private void HandleSave(object sender, ExecutedRoutedEventArgs e)
+        {
+            SaveFileDialog fileDialog = new SaveFileDialog
+            {
+                AddExtension = true,
+                CheckPathExists = true,
+                DefaultExt = "png",
+                FileName = FilePath
+            };
+            if (fileDialog.ShowDialog(this).Value)
+            {
+                FilePath = fileDialog.FileName;
+                VisualCaptureUtil.SaveVisual
+                (
+                    DataContext as Visual,
+                    int.Parse
+                    (
+                        ((TextBlock)((ComboBoxItem)DpiBox.SelectedItem).Content).Text
+                    ),
+                    FilePath
+                );
+
+                Close();
+            }
+        }
+
+        private void HandleCancel(object sender, ExecutedRoutedEventArgs e)
+        {
+            Close();
+        }
+    }
 }

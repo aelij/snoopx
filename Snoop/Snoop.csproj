@@ -15,7 +15,7 @@
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -45,7 +45,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -57,6 +58,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -67,6 +69,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=x86">
@@ -82,11 +85,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\Windows\assembly\GAC_MSIL\System.Management.Automation\1.0.0.0__31bf3856ad364e35\System.Management.Automation.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="UIAutomationProvider">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
@@ -133,15 +133,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="SampleData\ScreenshotVisualSample.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ScreenshotDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Shell\EmbeddedShellView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -172,10 +164,8 @@
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </None>
-    <Content Include="Scripts\Snoop.psm1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="VisualTreeItem.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -185,7 +175,6 @@
     <Compile Include="BringIntoViewBehavior.cs" />
     <Compile Include="Converters\ArgbToPartsConverter.cs" />
     <Compile Include="Converters\FilterTypeToIntConverter.cs" />
-    <Compile Include="Converters\IsPowerShellInstalledToVisibilityConverter.cs" />
     <Compile Include="Converters\CsvStringToArrayConverter.cs" />
     <Compile Include="Converters\IsSupportedRuntimeTypeConverter.cs" />
     <Compile Include="Converters\SnoopParameterInfoConverter.cs" />
@@ -203,6 +192,7 @@
     <Compile Include="DebugListenerTab\SnoopMultipleFilter.cs" />
     <Compile Include="DebugListenerTab\SnoopSingleFilter.cs" />
     <Compile Include="DelayedCall.cs" />
+    <Compile Include="EditedPropertiesHelper.cs" />
     <Compile Include="EditTextBox.cs" />
     <Compile Include="EditUserFilters.xaml.cs">
       <DependentUpon>EditUserFilters.xaml</DependentUpon>
@@ -245,17 +235,12 @@
       <DependentUpon>TypeSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
+    <Compile Include="NoFocusHyperlink.cs" />
     <Compile Include="ObjectToStringConverter.cs" />
     <Compile Include="PertinentPropertyFilter.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shell\ShellConstants.cs" />
-    <Compile Include="Shell\EmbeddedShellView.xaml.cs">
-      <DependentUpon>EmbeddedShellView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Shell\SnoopPSHost.cs" />
-    <Compile Include="Shell\SnoopPSHostRawUserInterface.cs" />
-    <Compile Include="Shell\SnoopPSHostUserInterface.cs" />
-    <Compile Include="Shell\VisualTreeProvider.cs" />
+    <Compile Include="PropertyValueInfo.cs" />
     <Compile Include="ZoomerControl.xaml.cs">
       <DependentUpon>ZoomerControl.xaml</DependentUpon>
     </Compile>
@@ -353,7 +338,7 @@
     <Compile Include="SnoopUI.xaml.cs">
       <DependentUpon>SnoopUI.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VisualTreeHelper2.cs" />
+    <Compile Include="VisualTreeHelperEx.cs" />
     <Compile Include="VisualTreeItem.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -361,7 +346,6 @@
     <Compile Include="WindowFinder.xaml.cs">
       <DependentUpon>WindowFinder.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WindowPlacement.cs" />
     <Compile Include="Zoomer.xaml.cs">
       <DependentUpon>Zoomer.xaml</DependentUpon>
     </Compile>
@@ -394,9 +378,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\SnoopCrosshairsCursor.cur" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\SnoopCrosshairsCursor.png" />
   </ItemGroup>
   <ItemGroup />
   <ProjectExtensions>

@@ -1,32 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
-using System.Runtime.Serialization;
+using System.ComponentModel;
+using System.Linq;
 
 namespace Snoop.DebugListenerTab
 {
 	[Serializable]
 	public class FiltersViewModel : INotifyPropertyChanged
 	{
-		private List<SnoopMultipleFilter> multipleFilters = new List<SnoopMultipleFilter>();
-		private bool isDirty = false;
+		private readonly List<SnoopMultipleFilter> _multipleFilters = new List<SnoopMultipleFilter>();
+		private bool _isDirty;
 
 		public void ResetDirtyFlag()
 		{
-			isDirty = false;
-			foreach (var filter in this.filters)
+			_isDirty = false;
+			foreach (var filter in _filters)
 			{
 				filter.ResetDirtyFlag();
 			}
@@ -36,21 +25,13 @@ namespace Snoop.DebugListenerTab
 		{
 			get
 			{
-				if (isDirty)
-					return true;
-
-				foreach (var filter in this.filters)
-				{
-					if (filter.IsDirty)
-						return true;
-				}
-				return false;
+			    return _isDirty || _filters.Any(filter => filter.IsDirty);
 			}
 		}
 
 		public FiltersViewModel()
 		{
-			filters.Add(new SnoopSingleFilter());
+			_filters.Add(new SnoopSingleFilter());
 			FilterStatus = _isSet ? "Filter is ON" : "Filter is OFF";
 		}
 
@@ -61,17 +42,17 @@ namespace Snoop.DebugListenerTab
 
 		public void InitializeFilters(IList<SnoopSingleFilter> singleFilters)
 		{
-			this.filters.Clear();
+			_filters.Clear();
 
 			if (singleFilters == null)
 			{
-				filters.Add(new SnoopSingleFilter());
-				this.IsSet = false;
+				_filters.Add(new SnoopSingleFilter());
+				IsSet = false;
 				return;
 			}
 
 			foreach (var filter in singleFilters)
-				this.filters.Add(filter);
+				_filters.Add(filter);
 
 			var groupings = (from x in singleFilters where x.IsGrouped select x).GroupBy(x => x.GroupId);
 			foreach (var grouping in groupings)
@@ -82,7 +63,7 @@ namespace Snoop.DebugListenerTab
 					continue;
 
 				multipleFilter.AddRange(groupedFilters, groupedFilters[0].GroupId);
-				this.multipleFilters.Add(multipleFilter);
+				_multipleFilters.Add(multipleFilter);
 			}
 
 			SetIsSet();
@@ -90,109 +71,69 @@ namespace Snoop.DebugListenerTab
 
 		internal void SetIsSet()
 		{
-			if (filters == null)
-				this.IsSet = false;
-
-			if (filters.Count == 1 && filters[0] is SnoopSingleFilter && string.IsNullOrEmpty(((SnoopSingleFilter)filters[0]).Text))
-				this.IsSet = false;
-			else
-				this.IsSet = true;
+		    IsSet = _filters != null &&
+		            (_filters.Count != 1 || !(_filters[0] is SnoopSingleFilter) ||
+		             !string.IsNullOrEmpty(((SnoopSingleFilter) _filters[0]).Text));
 		}
 
-		public void ClearFilters()
+	    public void ClearFilters()
 		{
-			this.multipleFilters.Clear();
-			this.filters.Clear();
-			this.filters.Add(new SnoopSingleFilter());
-			this.IsSet = false;
+			_multipleFilters.Clear();
+			_filters.Clear();
+			_filters.Add(new SnoopSingleFilter());
+			IsSet = false;
 		}
 
 		public bool FilterMatches(string str)
 		{
-			foreach (var filter in Filters)
-			{
-				if (filter.IsGrouped)
-					continue;
-
-				if (filter.FilterMatches(str))
-					return true;
-			}
-
-			foreach (var multipleFilter in this.multipleFilters)
-			{
-				if (multipleFilter.FilterMatches(str))
-					return true;
-			}
-
-			return false;
+		    return Filters.Where(filter => !filter.IsGrouped).Any(filter => filter.FilterMatches(str)) ||
+		           _multipleFilters.Any(multipleFilter => multipleFilter.FilterMatches(str));
 		}
 
-		private string GetFirstNonUsedGroupId()
-		{
-			int index = 1;
-			while (true)
-			{
-				if (!GroupIdTaken(index.ToString()))
-					return index.ToString();
-
-				index++;
-			}
-		}
-
-		private bool GroupIdTaken(string groupID)
-		{
-			foreach (var filter in multipleFilters)
-			{
-				if (groupID.Equals(filter.GroupId))
-					return true;
-			}
-			return false;
-		}
-
-		public void GroupFilters(IEnumerable<SnoopFilter> filtersToGroup)
+	    public void GroupFilters(ICollection<SnoopFilter> filtersToGroup)
 		{
 			SnoopMultipleFilter multipleFilter = new SnoopMultipleFilter();
-			multipleFilter.AddRange(filtersToGroup, (multipleFilters.Count + 1).ToString());
+			multipleFilter.AddRange(filtersToGroup, (_multipleFilters.Count + 1).ToString());
 
-			multipleFilters.Add(multipleFilter);
+			_multipleFilters.Add(multipleFilter);
 		}
 
 		public void AddFilter(SnoopFilter filter)
 		{
-			isDirty = true;
-			this.filters.Add(filter);
+			_isDirty = true;
+			_filters.Add(filter);
 		}
 
 		public void RemoveFilter(SnoopFilter filter)
 		{
-			isDirty = true;
+			_isDirty = true;
 			var singleFilter = filter as SnoopSingleFilter;
 			if (singleFilter != null)
 			{
 				//foreach (var multipeFilter in this.multipleFilters)
 				int index = 0;
-				while (index < this.multipleFilters.Count)
+				while (index < _multipleFilters.Count)
 				{
-					var multipeFilter = this.multipleFilters[index];
+					var multipeFilter = _multipleFilters[index];
 					if (multipeFilter.ContainsFilter(singleFilter))
 						multipeFilter.RemoveFilter(singleFilter);
 
 					if (!multipeFilter.IsValidMultipleFilter)
-						this.multipleFilters.RemoveAt(index);
+						_multipleFilters.RemoveAt(index);
 					else
 						index++;
 				}
 			}
-			this.filters.Remove(filter);
+			_filters.Remove(filter);
 		}
 
 		public void ClearFilterGroups()
 		{
-			foreach (var filterGroup in this.multipleFilters)
+			foreach (var filterGroup in _multipleFilters)
 			{
 				filterGroup.ClearFilters();
 			}
-			this.multipleFilters.Clear();
+			_multipleFilters.Clear();
 		}
 
 		private bool _isSet;
@@ -224,12 +165,12 @@ namespace Snoop.DebugListenerTab
 			}
 		}
 
-		private ObservableCollection<SnoopFilter> filters = new ObservableCollection<SnoopFilter>();
+		private readonly ObservableCollection<SnoopFilter> _filters = new ObservableCollection<SnoopFilter>();
 		public IEnumerable<SnoopFilter> Filters
 		{
 			get
 			{
-				return filters;
+				return _filters;
 			}
 		}
 
@@ -237,7 +178,7 @@ namespace Snoop.DebugListenerTab
 
 		protected void RaisePropertyChanged(string propertyName)
 		{
-			var handler = this.PropertyChanged;
+			var handler = PropertyChanged;
 			if (handler != null)
 				handler(this, new PropertyChangedEventArgs(propertyName));
 		}

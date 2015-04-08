@@ -1,24 +1,26 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Media;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows.Data;
-using System;
-using System.Windows.Controls;
-using System.Text;
+using Snoop.Annotations;
 
 namespace Snoop
 {
 	public class VisualTreeItem : INotifyPropertyChanged
 	{
-		public static VisualTreeItem Construct(object target, VisualTreeItem parent)
+	    [SuppressMessage("ReSharper", "CanBeReplacedWithTryCastAndCheckForNull")]
+	    public static VisualTreeItem Construct(object target, VisualTreeItem parent)
 		{
 			VisualTreeItem visualTreeItem;
 
@@ -38,10 +40,10 @@ namespace Snoop
 		protected VisualTreeItem(object target, VisualTreeItem parent)
 		{
 		    if (target == null) throw new ArgumentNullException("target");
-		    this.target = target;
-			this.parent = parent;
+		    Target = target;
+			_parent = parent;
 			if (parent != null)
-				this.depth = parent.depth + 1;
+				_depth = parent._depth + 1;
 		}
 
 
@@ -50,11 +52,11 @@ namespace Snoop
 			StringBuilder sb = new StringBuilder(50);
 
 			// [depth] name (type) numberOfChildren
-			sb.AppendFormat("[{0}] {1} ({2})", this.depth.ToString("D3"), this.name, this.Target.GetType().Name);
-			if (this.visualChildrenCount != 0)
+			sb.AppendFormat("[{0}] {1} ({2})", _depth.ToString("D3"), _name, Target.GetType().Name);
+			if (_visualChildrenCount != 0)
 			{
 				sb.Append(' ');
-				sb.Append(this.visualChildrenCount.ToString());
+				sb.Append(_visualChildrenCount.ToString());
 			}
 
 			return sb.ToString();
@@ -64,75 +66,71 @@ namespace Snoop
 		/// <summary>
 		/// The WPF object that this VisualTreeItem is wrapping
 		/// </summary>
-		public object Target
-		{
-			get { return this.target; }
-		}
-		private object target;
+		public object Target { get; private set; }
 
-		/// <summary>
+	    /// <summary>
 		/// The VisualTreeItem parent of this VisualTreeItem
 		/// </summary>
 		public VisualTreeItem Parent
 		{
-			get { return this.parent; }
+			get { return _parent; }
 		}
-		private VisualTreeItem parent;
+		private readonly VisualTreeItem _parent;
 
 		/// <summary>
 		/// The depth (in the visual tree) of this VisualTreeItem
 		/// </summary>
 		public int Depth
 		{
-			get { return this.depth; }
+			get { return _depth; }
 		}
-		private int depth;
+		private readonly int _depth;
 
 		/// <summary>
 		/// The VisualTreeItem children of this VisualTreeItem
 		/// </summary>
 		public ObservableCollection<VisualTreeItem> Children
 		{
-			get { return this.children; }
+			get { return _children; }
 		}
-		private ObservableCollection<VisualTreeItem> children = new ObservableCollection<VisualTreeItem>();
+		private readonly ObservableCollection<VisualTreeItem> _children = new ObservableCollection<VisualTreeItem>();
 
 
 		public bool IsSelected
 		{
-			get { return this.isSelected; }
+			get { return _isSelected; }
 			set
 			{
-				if (this.isSelected != value)
+				if (_isSelected != value)
 				{
-					this.isSelected = value;
+					_isSelected = value;
 
 					// Need to expand all ancestors so this will be visible in the tree.
-					if (this.isSelected && this.parent != null)
-						this.parent.ExpandTo();
+					if (_isSelected && _parent != null)
+						_parent.ExpandTo();
 
-					this.OnPropertyChanged("IsSelected");
-					this.OnSelectionChanged();
+					OnPropertyChanged("IsSelected");
+					OnSelectionChanged();
 				}
 			}
 		}
 		protected virtual void OnSelectionChanged()
 		{
 		}
-		private bool isSelected = false;
+		private bool _isSelected;
 
 		/// <summary>
 		/// Need this to databind to TreeView so we can display to hidden items.
 		/// </summary>
 		public bool IsExpanded
 		{
-			get { return this.isExpanded; }
+			get { return _isExpanded; }
 			set
 			{
-				if (this.isExpanded != value)
+				if (_isExpanded != value)
 				{
-					this.isExpanded = value;
-					this.OnPropertyChanged("IsExpanded");
+					_isExpanded = value;
+					OnPropertyChanged("IsExpanded");
 				}
 			}
 		}
@@ -142,12 +140,12 @@ namespace Snoop
 		/// </summary>
 		private void ExpandTo()
 		{
-			if (this.parent != null)
-				this.parent.ExpandTo();
+			if (_parent != null)
+				_parent.ExpandTo();
 
-			this.IsExpanded = true;
+			IsExpanded = true;
 		}
-		private bool isExpanded = false;
+		private bool _isExpanded;
 
 
 		public virtual Visual MainVisual
@@ -179,24 +177,25 @@ namespace Snoop
 		/// </summary>
 		public void Reload()
 		{
-			this.name = (this.target is FrameworkElement) ? ((FrameworkElement)this.target).Name : string.Empty;
+		    var element = Target as FrameworkElement;
+		    _name = element != null ? element.Name : string.Empty;
 
-			this.nameLower = (this.name ?? "").ToLower();
-			this.typeNameLower = this.Target != null ? this.Target.GetType().Name.ToLower() : string.Empty;
+			_nameLower = (_name ?? "").ToLower();
+			_typeNameLower = Target != null ? Target.GetType().Name.ToLower() : string.Empty;
 
-			List<VisualTreeItem> toBeRemoved = new List<VisualTreeItem>(this.Children);
-			this.Reload(toBeRemoved);
+			List<VisualTreeItem> toBeRemoved = new List<VisualTreeItem>(Children);
+			Reload(toBeRemoved);
 			foreach (VisualTreeItem item in toBeRemoved)
-				this.RemoveChild(item);
+				RemoveChild(item);
 
 
 			// calculate the number of visual children
-			foreach (VisualTreeItem child in this.Children)
+			foreach (VisualTreeItem child in Children)
 			{
 				if (child is VisualItem)
-					this.visualChildrenCount++;
+					_visualChildrenCount++;
 
-				this.visualChildrenCount += child.visualChildrenCount;
+				_visualChildrenCount += child._visualChildrenCount;
 			}
 		}
 		protected virtual void Reload(List<VisualTreeItem> toBeRemoved)
@@ -205,37 +204,29 @@ namespace Snoop
 
 
 
-		public VisualTreeItem FindNode(object target)
+		public VisualTreeItem FindNode(object node)
 		{
-			// it might be faster to have a map for the lookup
+		    // it might be faster to have a map for the lookup
 			// check into this at some point
-
-			if (this.Target == target)
-				return this;
-
-			foreach (VisualTreeItem child in this.Children)
-			{
-				VisualTreeItem node = child.FindNode(target);
-				if (node != null)
-					return node;
-			}
-			return null;
+		    return Target == node
+		        ? this
+		        : Children.Select(child => child.FindNode(node)).FirstOrDefault(n => n != null);
 		}
 
 
-		/// <summary>
+	    /// <summary>
 		/// Used for tree search.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public bool Filter(string value)
 		{
-			if (this.typeNameLower.Contains(value))
+			if (_typeNameLower.Contains(value))
 				return true;
-			if (this.nameLower.Contains(value))
+			if (_nameLower.Contains(value))
 				return true;
 			int n;
-			if (int.TryParse(value, out n) && n == this.depth)
+			if (int.TryParse(value, out n) && n == _depth)
 				return true;
 			return false;
 		}
@@ -244,22 +235,21 @@ namespace Snoop
 		protected void RemoveChild(VisualTreeItem item)
 		{
 			item.IsSelected = false;
-			this.Children.Remove(item);
+			Children.Remove(item);
 		}
 
+		private string _name;
+		private string _nameLower = string.Empty;
+		private string _typeNameLower = string.Empty;
+		private int _visualChildrenCount;
 
-		private string name;
-		private string nameLower = string.Empty;
-		private string typeNameLower = string.Empty;
-		private int visualChildrenCount = 0;
+	    public event PropertyChangedEventHandler PropertyChanged;
 
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void OnPropertyChanged(string propertyName)
-		{
-			Debug.Assert(this.GetType().GetProperty(propertyName) != null);
-			if (this.PropertyChanged != null)
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-		}
+	    [NotifyPropertyChangedInvocator]
+	    protected virtual void OnPropertyChanged(string propertyName)
+	    {
+	        var handler = PropertyChanged;
+	        if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+	    }
 	}
 }

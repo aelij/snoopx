@@ -1,4 +1,5 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
@@ -6,14 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 
 namespace Snoop.MethodsTab
 {
     public class SnoopMethodInformation : IComparable, IEquatable<SnoopMethodInformation>
     {
-        private MethodInfo _methodInfo;
+        private readonly MethodInfo _methodInfo;
 
         public string MethodName
         {
@@ -38,7 +38,7 @@ namespace Snoop.MethodsTab
 
         public int CompareTo(object obj)
         {
-            return this.MethodName.CompareTo(((SnoopMethodInformation)obj).MethodName);
+            return String.CompareOrdinal(MethodName, ((SnoopMethodInformation)obj).MethodName);
         }
 
         #endregion
@@ -56,15 +56,8 @@ namespace Snoop.MethodsTab
             var parameterInfos = _methodInfo.GetParameters();
 
 
-            List<SnoopParameterInformation> parametersToReturn = new List<SnoopParameterInformation>();
-
-            foreach (var parameterInfo in parameterInfos)
-            {
-                var snoopParameterInfo = new SnoopParameterInformation(parameterInfo, declaringType);
-                parametersToReturn.Add(snoopParameterInfo);
-            }
-
-            return parametersToReturn;
+            return parameterInfos.Select(parameterInfo => 
+                new SnoopParameterInformation(parameterInfo, declaringType)).ToList();
         }
 
         #region IEquatable<SnoopMethodInformation> Members
@@ -74,13 +67,13 @@ namespace Snoop.MethodsTab
             if (other == null)
                 return false;
 
-            if (other.MethodName != this.MethodName)
+            if (other.MethodName != MethodName)
                 return false;
 
-            if (!(other.MethodInfo.ReturnType.Equals(this.MethodInfo.ReturnType)))
+            if (other.MethodInfo.ReturnType != MethodInfo.ReturnType)
                 return false;
 
-            var thisParameterInfos = this.MethodInfo.GetParameters();
+            var thisParameterInfos = MethodInfo.GetParameters();
             var otherParameterInfos = other.MethodInfo.GetParameters();
 
             if (thisParameterInfos.Length != otherParameterInfos.Length)
@@ -104,7 +97,7 @@ namespace Snoop.MethodsTab
             if (!(parm1.Name.Equals(parm2.Name)))
                 return false;
 
-            if (!(parm1.ParameterType.Equals(parm2.ParameterType)))
+            if (parm1.ParameterType != parm2.ParameterType)
                 return false;
 
             return parm1.Position == parm2.Position;

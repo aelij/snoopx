@@ -1,14 +1,11 @@
-﻿// (c) Copyright Cory Plotts.
+﻿// (c) 2015 Eli Arbel
+// (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Snoop.MethodsTab
 {
@@ -34,10 +31,7 @@ namespace Snoop.MethodsTab
             {
                 return element.FindResource("UnknownParameterTemplate") as DataTemplate;
             }
-            else
-            {
-                return element.FindResource("DefaultParameterTemplate") as DataTemplate;
-            }
+            return element.FindResource("DefaultParameterTemplate") as DataTemplate;
         }
     }
 }
