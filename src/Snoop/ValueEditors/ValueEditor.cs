@@ -101,19 +101,7 @@ namespace Snoop
 			set { SetValue(PropertyInfoProperty, value); }
 		}
 		public static readonly DependencyProperty PropertyInfoProperty =
-			DependencyProperty.Register
-			(
-				"PropertyInfo",
-				typeof(PropertyInformation),
-				typeof(ValueEditor),
-				new UIPropertyMetadata(null, OnPropertyInfoChanged)
-			);
-		private static void OnPropertyInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-		{
-			((ValueEditor)d).OnPropertyInfoChanged(e);
-		}
-		private void OnPropertyInfoChanged(DependencyPropertyChangedEventArgs e)
-		{
-		}
+			DependencyProperty.Register("PropertyInfo", typeof(PropertyInformation),
+				typeof(ValueEditor), new FrameworkPropertyMetadata());
 	}
 }

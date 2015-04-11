@@ -7,555 +7,548 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Snoop.Infrastructure;
+using Snoop.Annotations;
 using Snoop.Properties;
 
 namespace Snoop
 {
-	public partial class PropertyInspector : INotifyPropertyChanged
-	{
-		public static readonly RoutedCommand SnipXamlCommand = new RoutedCommand("SnipXaml", typeof(PropertyInspector));
-		public static readonly RoutedCommand PopTargetCommand = new RoutedCommand("PopTarget", typeof(PropertyInspector));
-		public static readonly RoutedCommand DelveCommand = new RoutedCommand();
-		public static readonly RoutedCommand DelveBindingCommand = new RoutedCommand();
-		public static readonly RoutedCommand DelveBindingExpressionCommand = new RoutedCommand();
+    public partial class PropertyInspector : INotifyPropertyChanged
+    {
+        public static readonly RoutedCommand SnipXamlCommand = new RoutedCommand("SnipXaml", typeof(PropertyInspector));
+        public static readonly RoutedCommand PopTargetCommand = new RoutedCommand("PopTarget", typeof(PropertyInspector));
+        public static readonly RoutedCommand DelveCommand = new RoutedCommand();
+        public static readonly RoutedCommand DelveBindingCommand = new RoutedCommand();
+        public static readonly RoutedCommand DelveBindingExpressionCommand = new RoutedCommand();
 
-		public PropertyInspector()
-		{
-			_propertyFilter.SelectedFilterSet = AllFilterSets[0];
-				
-			InitializeComponent();
+        public PropertyInspector()
+        {
+            _propertyFilter.SelectedFilterSet = AllFilterSets[0];
 
-			_inspector = PropertyGrid;
-			_inspector.Filter = _propertyFilter;
+            InitializeComponent();
 
-			CommandBindings.Add(new CommandBinding(SnipXamlCommand, HandleSnipXaml, CanSnipXaml));
-			CommandBindings.Add(new CommandBinding(PopTargetCommand, HandlePopTarget, CanPopTarget));
-			CommandBindings.Add(new CommandBinding(DelveCommand, HandleDelve, CanDelve));
-			CommandBindings.Add(new CommandBinding(DelveBindingCommand, HandleDelveBinding, CanDelveBinding));
-			CommandBindings.Add(new CommandBinding(DelveBindingExpressionCommand, HandleDelveBindingExpression, CanDelveBindingExpression));
+            _inspector = PropertyGrid;
+            _inspector.Filter = _propertyFilter;
 
-			// watch for mouse "back" button
-			MouseDown += MouseDownHandler;
-			KeyDown += PropertyInspector_KeyDown;
-		}
+            CommandBindings.Add(new CommandBinding(SnipXamlCommand, HandleSnipXaml, CanSnipXaml));
+            CommandBindings.Add(new CommandBinding(PopTargetCommand, HandlePopTarget, CanPopTarget));
+            CommandBindings.Add(new CommandBinding(DelveCommand, HandleDelve, CanDelve));
+            CommandBindings.Add(new CommandBinding(DelveBindingCommand, HandleDelveBinding, CanDelveBinding));
+            CommandBindings.Add(new CommandBinding(DelveBindingExpressionCommand, HandleDelveBindingExpression, CanDelveBindingExpression));
 
-		public bool NameValueOnly
-		{
-			get
-			{
-				return _nameValueOnly;
-			}
-			set
-			{
-				PropertyGrid.NameValueOnly = value;
-			}
-		}
-		private readonly bool _nameValueOnly = false;
+            // watch for mouse "back" button
+            MouseDown += MouseDownHandler;
+            KeyDown += PropertyInspector_KeyDown;
+        }
 
-		private void HandleSnipXaml(object sender, ExecutedRoutedEventArgs e)
-		{
-			try
-			{
-				string xaml = XamlWriter.Save(((PropertyInformation)e.Parameter).Value);
-				Clipboard.SetData(DataFormats.Text, xaml);
-				MessageBox.Show("This brush has been copied to the clipboard. You can paste it into your project.", "Brush copied", MessageBoxButton.OK);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message);
-			}
-		}
+        public bool NameValueOnly
+        {
+            get { return PropertyGrid.NameValueOnly; }
+            set { PropertyGrid.NameValueOnly = value; }
+        }
 
-		private void CanSnipXaml(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && ((PropertyInformation)e.Parameter).Value is Brush)
-				e.CanExecute = true;
-			e.Handled = true;
-		}
+        private static void HandleSnipXaml(object sender, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                string xaml = XamlWriter.Save(((PropertyInformation)e.Parameter).Value);
+                Clipboard.SetData(DataFormats.Text, xaml);
+                MessageBox.Show("This brush has been copied to the clipboard. You can paste it into your project.", "Brush copied", MessageBoxButton.OK);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
 
-		public object RootTarget
-		{
-			get { return GetValue(RootTargetProperty); }
-			set { SetValue(RootTargetProperty, value); }
-		}
-		public static readonly DependencyProperty RootTargetProperty =
-			DependencyProperty.Register
-			(
-				"RootTarget",
-				typeof(object),
-				typeof(PropertyInspector),
-				new PropertyMetadata(HandleRootTargetChanged)
-			);
-		private static void HandleRootTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-		{
-			PropertyInspector inspector = (PropertyInspector)d;
+        private static void CanSnipXaml(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter != null && ((PropertyInformation)e.Parameter).Value is Brush)
+                e.CanExecute = true;
+            e.Handled = true;
+        }
 
-			inspector._inspectStack.Clear();
-			inspector.Target = e.NewValue;
+        public object RootTarget
+        {
+            get { return GetValue(RootTargetProperty); }
+            set { SetValue(RootTargetProperty, value); }
+        }
+        public static readonly DependencyProperty RootTargetProperty =
+            DependencyProperty.Register
+            (
+                "RootTarget",
+                typeof(object),
+                typeof(PropertyInspector),
+                new PropertyMetadata(HandleRootTargetChanged)
+            );
+        private static void HandleRootTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            PropertyInspector inspector = (PropertyInspector)d;
 
-			inspector._delvePathList.Clear();
-			inspector.OnPropertyChanged("DelvePath");
-		}
+            inspector._inspectStack.Clear();
+            inspector.Target = e.NewValue;
 
-		public object Target
-		{
-			get { return GetValue(TargetProperty); }
-			set { SetValue(TargetProperty, value); }
-		}
+            inspector._delvePathList.Clear();
+            inspector.OnPropertyChanged("DelvePath");
+        }
 
-		public static readonly DependencyProperty TargetProperty =
-			DependencyProperty.Register
-			(
-				"Target",
-				typeof(object),
-				typeof(PropertyInspector),
-				new PropertyMetadata(HandleTargetChanged)
-			);
+        public object Target
+        {
+            get { return GetValue(TargetProperty); }
+            set { SetValue(TargetProperty, value); }
+        }
 
-		private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-		{
-			PropertyInspector inspector = (PropertyInspector)d;
-			inspector.OnPropertyChanged("Type");
+        public static readonly DependencyProperty TargetProperty =
+            DependencyProperty.Register
+            (
+                "Target",
+                typeof(object),
+                typeof(PropertyInspector),
+                new PropertyMetadata(HandleTargetChanged)
+            );
 
-			if (e.NewValue != null)
-				inspector._inspectStack.Add(e.NewValue);
-		}
+        private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            PropertyInspector inspector = (PropertyInspector)d;
+            inspector.OnPropertyChanged("Type");
+
+            if (e.NewValue != null)
+                inspector._inspectStack.Add(e.NewValue);
+        }
 
 
-		private string GetDelvePath(Type rootTargetType)
-		{
-			StringBuilder delvePath = new StringBuilder(rootTargetType.Name);
+        private string GetDelvePath(Type rootTargetType)
+        {
+            StringBuilder delvePath = new StringBuilder(rootTargetType.Name);
 
-			foreach (var propInfo in _delvePathList)
-			{
-			    int collectionIndex;
-			    delvePath.Append((collectionIndex = propInfo.CollectionIndex()) >= 0
-			        ? string.Format("[{0}]", collectionIndex)
-			        : string.Format(".{0}", propInfo.DisplayName));
-			}
+            foreach (var propInfo in _delvePathList)
+            {
+                int collectionIndex;
+                delvePath.Append((collectionIndex = propInfo.CollectionIndex) >= 0
+                    ? string.Format("[{0}]", collectionIndex)
+                    : string.Format(".{0}", propInfo.DisplayName));
+            }
 
-		    return delvePath.ToString();
-		}
+            return delvePath.ToString();
+        }
 
-		private string GetCurrentTypeName(Type rootTargetType)
-		{
-			string type = string.Empty;
-			if (_delvePathList.Count > 0)
-			{
-				ISkipDelve skipDelve = _delvePathList[_delvePathList.Count - 1].Value as ISkipDelve;
-				if (skipDelve != null && skipDelve.NextValue != null && skipDelve.NextValueType != null)
-				{
-					return skipDelve.NextValueType.ToString();
-                    //we want to make this "future friendly",
-                    //so we take into account that the string value of the property type may change.
-				}
-			    type = _delvePathList[_delvePathList.Count - 1].Value != null
-			        ? _delvePathList[_delvePathList.Count - 1].Value.GetType().ToString()
-			        : _delvePathList[_delvePathList.Count - 1].PropertyType.ToString();
-			}
-			else if (_delvePathList.Count == 0)
-			{
-				type = rootTargetType.FullName;
-			}
+        private string GetCurrentTypeName(Type rootTargetType)
+        {
+            string type = string.Empty;
+            if (_delvePathList.Count > 0)
+            {
+                type = _delvePathList[_delvePathList.Count - 1].Value != null
+                    ? _delvePathList[_delvePathList.Count - 1].Value.GetType().ToString()
+                    : _delvePathList[_delvePathList.Count - 1].PropertyType.ToString();
+            }
+            else if (_delvePathList.Count == 0)
+            {
+                type = rootTargetType.FullName;
+            }
 
-			return type;
-		}
+            return type;
+        }
 
-		/// <summary>
-		/// Delve Path
-		/// </summary>
-		public string DelvePath
-		{
-			get
-			{
-				if (RootTarget == null)
-					return "object is NULL";
+        /// <summary>
+        /// Delve Path
+        /// </summary>
+        public string DelvePath
+        {
+            get
+            {
+                if (RootTarget == null)
+                    return "object is NULL";
 
-				Type rootTargetType = RootTarget.GetType();
-				string delvePath = GetDelvePath(rootTargetType);
-				string type = GetCurrentTypeName(rootTargetType);
+                Type rootTargetType = RootTarget.GetType();
+                string delvePath = GetDelvePath(rootTargetType);
+                string type = GetCurrentTypeName(rootTargetType);
 
-				return string.Format("{0}\n({1})", delvePath, type);
-			}
-		}
+                return string.Format("{0}\n({1})", delvePath, type);
+            }
+        }
 
-		public Type Type
-		{
-			get
-			{
-				if (Target != null)
-					return Target.GetType();
-				return null;
-			}
-		}
+        public Type Type
+        {
+            get
+            {
+                if (Target != null)
+                    return Target.GetType();
+                return null;
+            }
+        }
 
-		public void PushTarget(object target)
-		{
-			Target = target;
-		}
-		public void SetTarget(object target)
-		{
-			_inspectStack.Clear();
-			Target = target;
-		}
+        public void PushTarget(object target)
+        {
+            Target = target;
+        }
 
-		private void HandlePopTarget(object sender, ExecutedRoutedEventArgs e)
-		{
-			PopTarget();
-		}
+        public void SetTarget(object target)
+        {
+            _inspectStack.Clear();
+            Target = target;
+        }
 
-		private void PopTarget()
-		{
-			if (_inspectStack.Count > 1)
-			{
-				Target = _inspectStack[_inspectStack.Count - 2];
-				_inspectStack.RemoveAt(_inspectStack.Count - 2);
-				_inspectStack.RemoveAt(_inspectStack.Count - 2);
+        private void HandlePopTarget(object sender, ExecutedRoutedEventArgs e)
+        {
+            PopTarget();
+        }
 
-				if (_delvePathList.Count > 0)
-				{
-					_delvePathList.RemoveAt(_delvePathList.Count - 1);
-					OnPropertyChanged("DelvePath");
-				}
-			}
-		}
-		private void CanPopTarget(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (_inspectStack.Count > 1)
-			{
-				e.Handled = true;
-				e.CanExecute = true;
-			}
-		}
+        private void PopTarget()
+        {
+            if (_inspectStack.Count > 1)
+            {
+                Target = _inspectStack[_inspectStack.Count - 2];
+                _inspectStack.RemoveAt(_inspectStack.Count - 2);
+                _inspectStack.RemoveAt(_inspectStack.Count - 2);
 
-		private object GetRealTarget(object target)
-		{
-			ISkipDelve skipDelve = target as ISkipDelve;
-			if (skipDelve != null)
-			{
-				return skipDelve.NextValue;
-			}
-			return target;
-		}
+                if (_delvePathList.Count > 0)
+                {
+                    _delvePathList.RemoveAt(_delvePathList.Count - 1);
+                    OnPropertyChanged("DelvePath");
+                }
+            }
+        }
 
-		private void HandleDelve(object sender, ExecutedRoutedEventArgs e)
-		{
-			var realTarget = GetRealTarget(((PropertyInformation)e.Parameter).Value);
+        private void CanPopTarget(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (_inspectStack.Count > 1)
+            {
+                e.Handled = true;
+                e.CanExecute = true;
+            }
+        }
 
-			if (realTarget != Target)
-			{
-				// top 'if' statement is the delve path.
-				// we do this because without doing this, the delve path gets out of sync with the actual delves.
-				// the reason for this is because PushTarget sets the new target,
-				// and if it's equal to the current (original) target, we won't raise the property-changed event,
-				// and therefore, we don't add to our delveStack (the real one).
+        private void HandleDelve(object sender, ExecutedRoutedEventArgs e)
+        {
+            var realTarget = ((PropertyInformation)e.Parameter).Value;
 
-				_delvePathList.Add(((PropertyInformation)e.Parameter));
-				OnPropertyChanged("DelvePath");
-			}
+            if (realTarget != Target)
+            {
+                // top 'if' statement is the delve path.
+                // we do this because without doing this, the delve path gets out of sync with the actual delves.
+                // the reason for this is because PushTarget sets the new target,
+                // and if it's equal to the current (original) target, we won't raise the property-changed event,
+                // and therefore, we don't add to our delveStack (the real one).
 
-			PushTarget(realTarget);
-		}
-		private void HandleDelveBinding(object sender, ExecutedRoutedEventArgs e)
-		{
-			PushTarget(((PropertyInformation)e.Parameter).Binding);
-		}
-		private void HandleDelveBindingExpression(object sender, ExecutedRoutedEventArgs e)
-		{
-			PushTarget(((PropertyInformation)e.Parameter).BindingExpression);
-		}
+                _delvePathList.Add(((PropertyInformation)e.Parameter));
+                OnPropertyChanged("DelvePath");
+            }
 
-		private void CanDelve(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && ((PropertyInformation)e.Parameter).Value != null)
-				e.CanExecute = true;
-			e.Handled = true;
-		}
-		private void CanDelveBinding(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && ((PropertyInformation)e.Parameter).Binding != null)
-				e.CanExecute = true;
-			e.Handled = true;
-		}
-		private void CanDelveBindingExpression(object sender, CanExecuteRoutedEventArgs e)
-		{
-			if (e.Parameter != null && ((PropertyInformation)e.Parameter).BindingExpression != null)
-				e.CanExecute = true;
-			e.Handled = true;
-		}
+            PushTarget(realTarget);
+        }
 
-		public PropertyFilter PropertyFilter
-		{
-			get { return _propertyFilter; }
-		}
-		private readonly PropertyFilter _propertyFilter = new PropertyFilter(string.Empty, true);
+        private void HandleDelveBinding(object sender, ExecutedRoutedEventArgs e)
+        {
+            PushTarget(((PropertyInformation)e.Parameter).Binding);
+        }
 
-		public string StringFilter
-		{
-			get { return _propertyFilter.FilterString; }
-			set
-			{
-				_propertyFilter.FilterString = value;
+        private void HandleDelveBindingExpression(object sender, ExecutedRoutedEventArgs e)
+        {
+            PushTarget(((PropertyInformation)e.Parameter).BindingExpression);
+        }
 
-				_inspector.Filter = _propertyFilter;
+        private static void CanDelve(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter != null && ((PropertyInformation)e.Parameter).Value != null)
+                e.CanExecute = true;
+            e.Handled = true;
+        }
 
-				OnPropertyChanged("StringFilter");
-			}
-		}
+        private static void CanDelveBinding(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter != null && ((PropertyInformation)e.Parameter).Binding != null)
+                e.CanExecute = true;
+            e.Handled = true;
+        }
 
-		public bool ShowDefaults
-		{
-			get { return _propertyFilter.ShowDefaults; }
-			set
-			{
-				_propertyFilter.ShowDefaults = value;
+        private static void CanDelveBindingExpression(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Parameter != null && ((PropertyInformation)e.Parameter).BindingExpression != null)
+                e.CanExecute = true;
+            e.Handled = true;
+        }
 
-				_inspector.Filter = _propertyFilter;
+        public PropertyFilter PropertyFilter
+        {
+            get { return _propertyFilter; }
+        }
 
-				OnPropertyChanged("ShowDefaults");
-			}
-		}
+        private readonly PropertyFilter _propertyFilter = new PropertyFilter(string.Empty, true);
 
-		/// <summary>
-		/// Looking for "browse back" mouse button.
-		/// Pop properties context when clicked.
-		/// </summary>
-		private void MouseDownHandler(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ChangedButton == MouseButton.XButton1)
-			{
-				PopTarget();
-			}
-		}
-		private void PropertyInspector_KeyDown(object sender, KeyEventArgs e)
-		{
-			if (Keyboard.Modifiers == ModifierKeys.Alt && e.SystemKey == Key.Left)
-			{
-				PopTarget();
-			}
-		}
+        public string StringFilter
+        {
+            get { return _propertyFilter.FilterString; }
+            set
+            {
+                _propertyFilter.FilterString = value;
 
-		/// <summary>
-		/// Hold the SelectedFilterSet in the PropertyFilter class, but track it here, so we know
-		/// when to "refresh" the filtering with filterCall.Enqueue
-		/// </summary>
-		public PropertyFilterSet SelectedFilterSet
-		{
-			get { return _propertyFilter.SelectedFilterSet; }
-			set
-			{
-				_propertyFilter.SelectedFilterSet = value;
-				OnPropertyChanged("SelectedFilterSet");
-				
-				if (value == null)
-					return;
+                _inspector.Filter = _propertyFilter;
 
-				if (value.IsEditCommand)
-				{
-					var dlg = new EditUserFilters { UserFilters = CopyFilterSets(UserFilterSets) };
+                OnPropertyChanged();
+            }
+        }
 
-					// set owning window to center over if we can find it up the tree
-					var snoopWindow = VisualTreeHelperEx.GetAncestor<Window>(this);
-					if (snoopWindow != null)
-					{
-						dlg.Owner = snoopWindow;
-						dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-					}
+        public bool ShowDefaults
+        {
+            get { return _propertyFilter.ShowDefaults; }
+            set
+            {
+                _propertyFilter.ShowDefaults = value;
 
-					bool? res = dlg.ShowDialog();
-					if (res.GetValueOrDefault())
-					{
-						// take the adjusted values from the dialog, setter will SAVE them to user properties
-						UserFilterSets = CleansFilterPropertyNames(dlg.ItemsSource);
-						// trigger the UI to re-bind to the collection, so user sees changes they just made
-						OnPropertyChanged("AllFilterSets");
-					}
+                _inspector.Filter = _propertyFilter;
 
-					// now that we're out of the dialog, set current selection back to "(default)"
-					Dispatcher.BeginInvoke(DispatcherPriority.Background, (DispatcherOperationCallback)delegate
-					{
-						// couldnt get it working by setting SelectedFilterSet directly
-						// using the Index to get us back to the first item in the list
-						FilterSetCombo.SelectedIndex = 0;
-						//SelectedFilterSet = AllFilterSets[0];
-						return null;
-					}, null);
-				}
-				else
-				{
-					_inspector.Filter = _propertyFilter;
-					OnPropertyChanged("SelectedFilterSet");
-				}
-			}
-		}
+                OnPropertyChanged();
+            }
+        }
 
-		/// <summary>
-		/// Get or Set the collection of User filter sets.  These are the filters that are configurable by 
-		/// the user, and serialized to/from app Settings.
-		/// </summary>
-		public PropertyFilterSet[] UserFilterSets
-		{
-			get
-			{
-				if (_filterSets == null)
-				{
-					var ret = new List<PropertyFilterSet>();
+        /// <summary>
+        /// Looking for "browse back" mouse button.
+        /// Pop properties context when clicked.
+        /// </summary>
+        private void MouseDownHandler(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.XButton1)
+            {
+                PopTarget();
+            }
+        }
 
-					try
-					{
-						var userFilters = Settings.Default.PropertyFilterSets;
-						ret.AddRange(userFilters ?? _defaultFilterSets);
-					}
-					catch (Exception ex)
-					{
-						string msg = String.Format("Error reading user filters from settings. Using defaults.\r\n\r\n{0}", ex.Message);
-						MessageBox.Show(msg, "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-						ret.Clear();
-						ret.AddRange(_defaultFilterSets);
-					}
+        private void PropertyInspector_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Alt && e.SystemKey == Key.Left)
+            {
+                PopTarget();
+            }
+        }
 
-					_filterSets = ret.ToArray();
-				}
-				return _filterSets;
-			}
-			set
-			{
-				_filterSets = value;
-				Settings.Default.PropertyFilterSets = _filterSets;
-				Settings.Default.Save();
-			}
-		}
+        /// <summary>
+        /// Hold the SelectedFilterSet in the PropertyFilter class, but track it here, so we know
+        /// when to "refresh" the filtering with filterCall.Enqueue
+        /// </summary>
+        public PropertyFilterSet SelectedFilterSet
+        {
+            get { return _propertyFilter.SelectedFilterSet; }
+            set
+            {
+                _propertyFilter.SelectedFilterSet = value;
+                OnPropertyChanged();
 
-		/// <summary>
-		/// Get the collection of "all" filter sets.  This is the UserFilterSets wrapped with 
-		/// (Default) at the start and "Edit Filters..." at the end of the collection.
-		/// This is the collection bound to in the UI 
-		/// </summary>
-		public PropertyFilterSet[] AllFilterSets
-		{
-			get
-			{
-				var ret = new List<PropertyFilterSet>(UserFilterSets);
+                if (value == null)
+                    return;
 
-				// now add the "(Default)" and "Edit Filters..." filters for the ComboBox
-				ret.Insert
-				(
-					0,
-					new PropertyFilterSet
-					{
-						DisplayName = "(Default)",
-						IsDefault = true,
-						IsEditCommand = false
-					}
-				);
-				ret.Add
-				(
-					new PropertyFilterSet
-					{
-						DisplayName = "Edit Filters...",
-						IsDefault = false,
-						IsEditCommand = true
-					}
-				);
-				return ret.ToArray();
-			}
-		}
+                if (value.IsEditCommand)
+                {
+                    var dlg = new EditUserFilters { UserFilters = CopyFilterSets(UserFilterSets) };
 
-		/// <summary>
-		/// Make a deep copy of the filter collection.
-		/// This is used when heading into the Edit dialog, so the user is editing a copy of the
-		/// filters, in case they cancel the dialog - we dont want to alter their live collection.
-		/// </summary>
-		public PropertyFilterSet[] CopyFilterSets(PropertyFilterSet[] source)
-		{
-		    return source.Select(src => new PropertyFilterSet
-		    {
-		        DisplayName = src.DisplayName,
-		        IsDefault = src.IsDefault,
-		        IsEditCommand = src.IsEditCommand,
-		        Properties = (string[]) src.Properties.Clone()
-		    }).ToArray();
-		}
+                    // set owning window to center over if we can find it up the tree
+                    var snoopWindow = this.GetAncestor<Window>();
+                    if (snoopWindow != null)
+                    {
+                        dlg.Owner = snoopWindow;
+                        dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                    }
 
-		/// <summary>
-		/// Cleanse the property names in each filter in the collection.
-		/// This includes removing spaces from each one, and making them all lower case
-		/// </summary>
-		private static PropertyFilterSet[] CleansFilterPropertyNames(ICollection<PropertyFilterSet> collection)
-		{
-			foreach (PropertyFilterSet filterItem in collection)
-			{
-				filterItem.Properties = filterItem.Properties.Select(s => s.ToLower().Trim()).ToArray();
-			}
-			return collection.ToArray();
-		}
+                    bool? res = dlg.ShowDialog();
+                    if (res.GetValueOrDefault())
+                    {
+                        // take the adjusted values from the dialog, setter will SAVE them to user properties
+                        UserFilterSets = CleansFilterPropertyNames(dlg.ItemsSource);
+                        // trigger the UI to re-bind to the collection, so user sees changes they just made
+                        OnPropertyChanged("AllFilterSets");
+                    }
 
-		private readonly List<object> _inspectStack = new List<object>();
-		private PropertyFilterSet[] _filterSets;
-		private readonly List<PropertyInformation> _delvePathList = new List<PropertyInformation>();
+                    // now that we're out of the dialog, set current selection back to "(default)"
+                    Dispatcher.BeginInvoke(DispatcherPriority.Background, (DispatcherOperationCallback)delegate
+                    {
+                        // couldnt get it working by setting SelectedFilterSet directly
+                        // using the Index to get us back to the first item in the list
+                        FilterSetCombo.SelectedIndex = 0;
+                        //SelectedFilterSet = AllFilterSets[0];
+                        return null;
+                    }, null);
+                }
+                else
+                {
+                    _inspector.Filter = _propertyFilter;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
-		private readonly Inspector _inspector;
+        /// <summary>
+        /// Get or Set the collection of User filter sets.  These are the filters that are configurable by 
+        /// the user, and serialized to/from app Settings.
+        /// </summary>
+        public PropertyFilterSet[] UserFilterSets
+        {
+            get
+            {
+                if (_filterSets == null)
+                {
+                    var ret = new List<PropertyFilterSet>();
 
-		private readonly PropertyFilterSet[] _defaultFilterSets = {
-			new PropertyFilterSet
-			{
-				DisplayName = "Layout",
-				IsDefault = false,
-				IsEditCommand = false,
-				Properties = new[]
-				{
-					"width", "height", "actualwidth", "actualheight", "margin", "padding", "left", "top"
-				}
-			},
-			new PropertyFilterSet
-			{
-				DisplayName = "Grid/Dock",
-				IsDefault = false,
-				IsEditCommand = false,
-				Properties = new[]
-				{
-					"grid", "dock"
-				}
-			},
-			new PropertyFilterSet
-			{
-				DisplayName = "Color",
-				IsDefault = false,
-				IsEditCommand = false,
-				Properties = new[]
-				{
-					"color", "background", "foreground", "borderbrush", "fill", "stroke"
-				}
-			},
-			new PropertyFilterSet
-			{
-				DisplayName = "ItemsControl",
-				IsDefault = false,
-				IsEditCommand = false,
-				Properties = new[]
-				{
-					"items", "selected"
-				}
-			}
-		};
+                    try
+                    {
+                        var userFilters = Settings.Default.PropertyFilterSets;
+                        ret.AddRange(userFilters ?? _defaultFilterSets);
+                    }
+                    catch (Exception ex)
+                    {
+                        string msg = String.Format("Error reading user filters from settings. Using defaults.\r\n\r\n{0}", ex.Message);
+                        MessageBox.Show(msg, "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                        ret.Clear();
+                        ret.AddRange(_defaultFilterSets);
+                    }
 
-		#region INotifyPropertyChanged Members
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void OnPropertyChanged(string propertyName)
-		{
-			Debug.Assert(GetType().GetProperty(propertyName) != null);
-			if (PropertyChanged != null)
-				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-		}
-		#endregion
-	}
+                    _filterSets = ret.ToArray();
+                }
+                return _filterSets;
+            }
+            set
+            {
+                _filterSets = value;
+                Settings.Default.PropertyFilterSets = _filterSets;
+                Settings.Default.Save();
+            }
+        }
+
+        /// <summary>
+        /// Get the collection of "all" filter sets.  This is the UserFilterSets wrapped with 
+        /// (Default) at the start and "Edit Filters..." at the end of the collection.
+        /// This is the collection bound to in the UI 
+        /// </summary>
+        public PropertyFilterSet[] AllFilterSets
+        {
+            get
+            {
+                var ret = new List<PropertyFilterSet>(UserFilterSets);
+
+                // now add the "(Default)" and "Edit Filters..." filters for the ComboBox
+                ret.Insert
+                (
+                    0,
+                    new PropertyFilterSet
+                    {
+                        DisplayName = "(Default)",
+                        IsDefault = true,
+                        IsEditCommand = false
+                    }
+                );
+                ret.Add
+                (
+                    new PropertyFilterSet
+                    {
+                        DisplayName = "Edit Filters...",
+                        IsDefault = false,
+                        IsEditCommand = true
+                    }
+                );
+                return ret.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Make a deep copy of the filter collection.
+        /// This is used when heading into the Edit dialog, so the user is editing a copy of the
+        /// filters, in case they cancel the dialog - we dont want to alter their live collection.
+        /// </summary>
+        public PropertyFilterSet[] CopyFilterSets(PropertyFilterSet[] source)
+        {
+            return source.Select(src => new PropertyFilterSet
+            {
+                DisplayName = src.DisplayName,
+                IsDefault = src.IsDefault,
+                IsEditCommand = src.IsEditCommand,
+                Properties = (string[])src.Properties.Clone()
+            }).ToArray();
+        }
+
+        /// <summary>
+        /// Cleanse the property names in each filter in the collection.
+        /// This includes removing spaces from each one, and making them all lower case
+        /// </summary>
+        private static PropertyFilterSet[] CleansFilterPropertyNames(ICollection<PropertyFilterSet> collection)
+        {
+            foreach (PropertyFilterSet filterItem in collection)
+            {
+                filterItem.Properties = filterItem.Properties.Select(s => s.ToLower().Trim()).ToArray();
+            }
+            return collection.ToArray();
+        }
+
+        private readonly List<object> _inspectStack = new List<object>();
+        private PropertyFilterSet[] _filterSets;
+        private readonly List<PropertyInformation> _delvePathList = new List<PropertyInformation>();
+
+        private readonly PropertyGrid _inspector;
+
+        private readonly PropertyFilterSet[] _defaultFilterSets = GetDefaultFilterSets();
+
+        private static PropertyFilterSet[] GetDefaultFilterSets()
+        {
+            return new[]
+            {
+                new PropertyFilterSet
+                {
+                    DisplayName = "Layout",
+                    IsDefault = false,
+                    IsEditCommand = false,
+                    Properties = new[]
+                    {
+                        "width", "height", "actualwidth", "actualheight", "margin", "padding", "left", "top"
+                    }
+                },
+                new PropertyFilterSet
+                {
+                    DisplayName = "Grid/Dock",
+                    IsDefault = false,
+                    IsEditCommand = false,
+                    Properties = new[]
+                    {
+                        "grid", "dock"
+                    }
+                },
+                new PropertyFilterSet
+                {
+                    DisplayName = "Color",
+                    IsDefault = false,
+                    IsEditCommand = false,
+                    Properties = new[]
+                    {
+                        "color", "background", "foreground", "borderbrush", "fill", "stroke"
+                    }
+                },
+                new PropertyFilterSet
+                {
+                    DisplayName = "ItemsControl",
+                    IsDefault = false,
+                    IsEditCommand = false,
+                    Properties = new[]
+                    {
+                        "items", "selected"
+                    }
+                }
+            };
+        }
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
 }

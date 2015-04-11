@@ -6,6 +6,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Windows;
 
 [assembly: AssemblyTitle("SnoopX")]
 [assembly: AssemblyProduct("SnoopX")]
@@ -14,3 +15,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 [assembly: ComVisible(false)]
+
+[assembly: ThemeInfo(
+    ResourceDictionaryLocation.SourceAssembly,
+    ResourceDictionaryLocation.SourceAssembly)]

@@ -133,7 +133,7 @@ All other rights reserved.
         </ComboBox>
     </Grid>
 
-    <my:PropertyGrid2 x:Name="PropertyGrid"
+    <my:PropertyGrid x:Name="PropertyGrid"
                       Grid.Row="2"
                       Grid.Column="1"
                       MinHeight="0"

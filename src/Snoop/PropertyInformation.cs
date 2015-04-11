@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,7 +15,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -26,6 +26,25 @@ namespace Snoop
 {
     public class PropertyInformation : DependencyObject, IComparable, INotifyPropertyChanged
     {
+        private static readonly IReadOnlyList<PropertyInformation> _childrenEmptySentinel = new ReadOnlyCollection<PropertyInformation>(new PropertyInformation[0]);
+
+        private readonly object _target;
+        private readonly object _component;
+        private readonly bool _isCopyable;
+        private readonly PropertyDescriptor _property;
+        private readonly string _displayName;
+
+        private string _bindingError = string.Empty;
+        private PropertyFilter _filter;
+        private bool _isRunning;
+        private bool _ignoreUpdate;
+        private DispatcherTimer _changeTimer;
+        private int _index;
+        private bool _breakOnChange;
+        private ValueSource _valueSource;
+        private bool _changedRecently;
+        private IReadOnlyList<PropertyInformation> _children;
+
         /// <summary>
         /// Normal constructor used when constructing PropertyInformation objects for properties.
         /// </summary>
@@ -38,6 +57,16 @@ namespace Snoop
             _target = target;
             _property = property;
             _displayName = propertyDisplayName;
+            CollectionIndex = -1;
+
+            if (target != null)
+            {
+                var type = target.GetType();
+                if (!type.IsPrimitive && type != typeof(string))
+                {
+                    _children = _childrenEmptySentinel;
+                }
+            }
 
             if (property != null)
             {
@@ -75,11 +104,13 @@ namespace Snoop
         /// </summary>
         /// <param name="target">the item in the collection</param>
         /// <param name="component">the collection</param>
+        /// <param name="collectionIndex">Index in the collection.</param>
         /// <param name="displayName">the display name that goes in the name column, i.e. this[x]</param>
-        /// <param name="isCopyable"></param>
-        public PropertyInformation(object target, object component, string displayName, bool isCopyable = false)
+        /// <param name="isCopyable">if set to <c>true</c> [is copyable].</param>
+        public PropertyInformation(object target, object component, int collectionIndex, string displayName, bool isCopyable = false)
             : this(target, null, displayName, displayName)
         {
+            CollectionIndex = collectionIndex;
             _component = component;
             _isCopyable = isCopyable;
         }
@@ -94,7 +125,6 @@ namespace Snoop
         {
             get { return _target; }
         }
-        private readonly object _target;
 
         public object Value
         {
@@ -102,17 +132,14 @@ namespace Snoop
             set { SetValue(ValueProperty, value); }
         }
         public static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register
-            (
-                "Value",
-                typeof(object),
-                typeof(PropertyInformation),
-                new PropertyMetadata(HandleValueChanged)
-            );
+            DependencyProperty.Register("Value", typeof(object), typeof(PropertyInformation),
+                new PropertyMetadata(HandleValueChanged));
+
         private static void HandleValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ((PropertyInformation)d).OnValueChanged();
         }
+
         protected virtual void OnValueChanged()
         {
             Update();
@@ -140,6 +167,7 @@ namespace Snoop
                 }
             }
         }
+
         private void HandleChangeExpiry(object sender, EventArgs e)
         {
             _changeTimer.Stop();
@@ -147,7 +175,6 @@ namespace Snoop
 
             HasChangedRecently = false;
         }
-        private DispatcherTimer _changeTimer;
 
         public string StringValue
         {
@@ -274,7 +301,7 @@ namespace Snoop
         /// <summary>
         /// Build up a string of Paths for a MultiBinding separated by ;
         /// </summary>
-        private string BuildMultiBindingDescriptiveString(IEnumerable<Binding> bindings)
+        private static string BuildMultiBindingDescriptiveString(IEnumerable<Binding> bindings)
         {
             string ret = " {Paths=";
             foreach (Binding binding in bindings)
@@ -291,7 +318,7 @@ namespace Snoop
         /// <summary>
         /// Build up a string describing the Binding.  Path and ElementName (if present)
         /// </summary>
-        private string BuildBindingDescriptiveString(Binding binding, bool isSinglePath)
+        private static string BuildBindingDescriptiveString(Binding binding, bool isSinglePath)
         {
             var sb = new StringBuilder();
             var bindingPath = binding.Path.Path;
@@ -330,8 +357,6 @@ namespace Snoop
                 return _property.ComponentType;
             }
         }
-        private readonly object _component;
-        private readonly bool _isCopyable;
 
         public Type PropertyType
         {
@@ -363,34 +388,22 @@ namespace Snoop
         {
             get { return _bindingError; }
         }
-        private string _bindingError = string.Empty;
 
         public PropertyDescriptor Property
         {
             get { return _property; }
         }
-        private readonly PropertyDescriptor _property;
 
         public string DisplayName
         {
             get { return _displayName; }
         }
-        private readonly string _displayName;
 
-        public bool IsInvalidBinding
-        {
-            get { return _isInvalidBinding; }
-        }
-        private bool _isInvalidBinding;
+        public bool IsInvalidBinding { get; private set; }
 
-        public bool IsLocallySet
-        {
-            get { return _isLocallySet; }
-        }
-        private bool _isLocallySet;
+        public bool IsLocallySet { get; private set; }
 
         public bool IsValueChangedByUser { get; set; }
-
 
         public bool CanEdit
         {
@@ -406,11 +419,7 @@ namespace Snoop
             }
         }
 
-        public bool IsDatabound
-        {
-            get { return _isDatabound; }
-        }
-        private bool _isDatabound;
+        public bool IsDatabound { get; private set; }
 
         public bool IsExpression
         {
@@ -435,7 +444,6 @@ namespace Snoop
                 }
             }
         }
-        private int _index;
 
         public bool IsOdd
         {
@@ -476,7 +484,6 @@ namespace Snoop
                 OnPropertyChanged("IsVisible");
             }
         }
-        private PropertyFilter _filter;
 
         public bool BreakOnChange
         {
@@ -487,7 +494,6 @@ namespace Snoop
                 OnPropertyChanged();
             }
         }
-        private bool _breakOnChange;
 
         public bool HasChangedRecently
         {
@@ -498,13 +504,11 @@ namespace Snoop
                 OnPropertyChanged();
             }
         }
-        private bool _changedRecently;
 
         public ValueSource ValueSource
         {
             get { return _valueSource; }
         }
-        private ValueSource _valueSource;
 
         public bool IsVisible
         {
@@ -546,75 +550,19 @@ namespace Snoop
             if (_ignoreUpdate)
                 return;
 
-            _isLocallySet = false;
-            _isInvalidBinding = false;
-            _isDatabound = false;
+            IsLocallySet = false;
+            IsInvalidBinding = false;
+            IsDatabound = false;
 
-            DependencyProperty dp = DependencyProperty;
-            DependencyObject d = _target as DependencyObject;
+            var dp = DependencyProperty;
+            var d = _target as DependencyObject;
 
             if (SnoopModes.MultipleDispatcherMode && d != null && d.Dispatcher != Dispatcher)
                 return;
 
             if (dp != null && d != null)
             {
-                if (d.ReadLocalValue(dp) != DependencyProperty.UnsetValue)
-                    _isLocallySet = true;
-
-                BindingExpressionBase expression = BindingOperations.GetBindingExpressionBase(d, dp);
-                if (expression != null)
-                {
-                    _isDatabound = true;
-
-                    if (expression.HasError || expression.Status != BindingStatus.Active)
-                    {
-                        _isInvalidBinding = true;
-
-                        StringBuilder builder = new StringBuilder();
-                        StringWriter writer = new StringWriter(builder);
-                        TextWriterTraceListener tracer = new TextWriterTraceListener(writer);
-                        PresentationTraceSources.DataBindingSource.Listeners.Add(tracer);
-
-                        // reset binding to get the error message.
-                        _ignoreUpdate = true;
-                        d.ClearValue(dp);
-                        BindingOperations.SetBinding(d, dp, expression.ParentBindingBase);
-                        _ignoreUpdate = false;
-
-                        // cplotts note: maciek ... are you saying that this is another, more concise way to dispatch the following code?
-                        //Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, () =>
-                        //    {
-                        //        bindingError = builder.ToString();
-                        //        this.OnPropertyChanged("BindingError");
-                        //        PresentationTraceSources.DataBindingSource.Listeners.Remove(tracer);
-                        //        writer.Close();
-                        //    });
-
-                        // this needs to happen on idle so that we can actually run the binding, which may occur asynchronously.
-                        Dispatcher.BeginInvoke
-                        (
-                            DispatcherPriority.ApplicationIdle,
-                            new DispatcherOperationCallback
-                            (
-                                delegate
-                                {
-                                    _bindingError = builder.ToString();
-                                    this.OnPropertyChanged("BindingError");
-                                    PresentationTraceSources.DataBindingSource.Listeners.Remove(tracer);
-                                    writer.Close();
-                                    return null;
-                                }
-                            ),
-                            null
-                        );
-                    }
-                    else
-                    {
-                        _bindingError = string.Empty;
-                    }
-                }
-
-                _valueSource = DependencyPropertyHelper.GetValueSource(d, dp);
+                UpdateValue(d, dp);
             }
 
             OnPropertyChanged("IsLocallySet");
@@ -627,6 +575,53 @@ namespace Snoop
             OnPropertyChanged("ValueSource");
         }
 
+        private void UpdateValue(DependencyObject d, DependencyProperty dp)
+        {
+            if (d.ReadLocalValue(dp) != DependencyProperty.UnsetValue)
+                IsLocallySet = true;
+
+            _valueSource = DependencyPropertyHelper.GetValueSource(d, dp);
+
+            BindingExpressionBase expression = BindingOperations.GetBindingExpressionBase(d, dp);
+            if (expression == null) return;
+
+            IsDatabound = true;
+
+            if (expression.HasError || expression.Status != BindingStatus.Active)
+            {
+                SetBindingError(d, dp, expression);
+            }
+            else
+            {
+                _bindingError = string.Empty;
+            }
+        }
+
+        private void SetBindingError(DependencyObject d, DependencyProperty dp, BindingExpressionBase expression)
+        {
+            IsInvalidBinding = true;
+
+            var builder = new StringBuilder();
+            var writer = new StringWriter(builder);
+            var tracer = new TextWriterTraceListener(writer);
+            PresentationTraceSources.DataBindingSource.Listeners.Add(tracer);
+
+            // reset binding to get the error message.
+            _ignoreUpdate = true;
+            d.ClearValue(dp);
+            BindingOperations.SetBinding(d, dp, expression.ParentBindingBase);
+            _ignoreUpdate = false;
+
+            // this needs to happen on idle so that we can actually run the binding, which may occur asynchronously.
+            Dispatcher.InvokeAsync(() =>
+            {
+                _bindingError = builder.ToString();
+                OnPropertyChanged("BindingError");
+                PresentationTraceSources.DataBindingSource.Listeners.Remove(tracer);
+                writer.Close();
+            }, DispatcherPriority.ApplicationIdle);
+        }
+
         public static List<PropertyInformation> GetProperties(object obj)
         {
             return GetProperties(obj, new PertinentPropertyFilter(obj).Filter);
@@ -635,8 +630,7 @@ namespace Snoop
         public static List<PropertyInformation> GetProperties(object obj, Predicate<PropertyDescriptor> filter)
         {
             // get the properties
-            List<PropertyDescriptor> propertyDescriptors = GetAllProperties(obj, new Attribute[] { new PropertyFilterAttribute(PropertyFilterOptions.All) });
-
+            var propertyDescriptors = GetAllProperties(obj, new Attribute[] { new PropertyFilterAttribute(PropertyFilterOptions.All) });
 
             // filter the properties
             var props = (
@@ -648,25 +642,21 @@ namespace Snoop
             var extendedProps = GetExtendedProperties(obj);
             props.AddRange(extendedProps);
 
-
             // if the object is a collection, add the items in the collection as properties
-            ICollection collection = obj as ICollection;
+            var collection = obj as ICollection;
             int index = 0;
             if (collection != null)
             {
                 foreach (object item in collection)
                 {
-                    PropertyInformation info = new PropertyInformation(item, collection, "this[" + index + "]");
+                    PropertyInformation info = new PropertyInformation(item, collection, index, "this[" + index + "]");
                     index++;
                     info.Value = item;
                     props.Add(info);
                 }
             }
 
-
-            // sort the properties
             props.Sort();
-
 
             return props;
         }
@@ -683,7 +673,7 @@ namespace Snoop
             if (obj != null && ResourceKeyCache.Contains(obj))
             {
                 string key = ResourceKeyCache.GetKey(obj);
-                var prop = new PropertyInformation(key, new object(), "x:Key", true) { Value = key };
+                var prop = new PropertyInformation(key, new object(), -1, "x:Key", true) { Value = key };
                 props.Add(prop);
             }
 
@@ -765,37 +755,41 @@ namespace Snoop
             }
         }
 
-        private bool _isRunning;
-        private bool _ignoreUpdate;
-
-        private static readonly Regex _isCollectionRegex = new Regex("^this\\[\\d+\\]$", RegexOptions.Compiled);
-
-        private bool IsCollection()
-        {
-            return _isCollectionRegex.IsMatch(DisplayName);
-        }
-
-        public int CollectionIndex()
-        {
-            if (IsCollection())
-            {
-                return int.Parse(DisplayName.Substring(5, DisplayName.Length - 6));
-            }
-            return -1;
-        }
+        public int CollectionIndex { get; private set; }
 
         #region IComparable Members
+
         public int CompareTo(object obj)
         {
-            int thisIndex = CollectionIndex();
-            int objIndex = ((PropertyInformation)obj).CollectionIndex();
+            int thisIndex = CollectionIndex;
+            int objIndex = ((PropertyInformation)obj).CollectionIndex;
             if (thisIndex >= 0 && objIndex >= 0)
             {
                 return thisIndex.CompareTo(objIndex);
             }
             return String.CompareOrdinal(DisplayName, ((PropertyInformation)obj).DisplayName);
         }
+
         #endregion
+
+        public IReadOnlyList<PropertyInformation> Children
+        {
+            get
+            {
+                if (ReferenceEquals(_children, _childrenEmptySentinel))
+                {
+                    _children = null;
+
+                }
+                return _children;
+            }
+            private set
+            {
+                if (Equals(value, _children)) return;
+                _children = value;
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

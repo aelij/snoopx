@@ -14,7 +14,7 @@ All other rights reserved.
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         x:Class="Snoop.AppChooser"
         Icon="SnoopX.ico"
-        Title="Snoop"
+        Title="SnoopX"
         SizeToContent="Width"
         Height="20"
         ResizeMode="CanMinimize"

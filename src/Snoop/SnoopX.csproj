@@ -11,7 +11,7 @@
     <RootNamespace>Snoop</RootNamespace>
     <AssemblyName>SnoopX</AssemblyName>
     <BaseIntermediateOutputPath>$(SolutionDir)..\build\intermediate\Snoop\$(ConfigurationName)</BaseIntermediateOutputPath>
-    <ApplicationIcon>..\Logo\SnoopX.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\assets\SnoopX.ico</ApplicationIcon>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
@@ -141,6 +141,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ZoomerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -169,10 +173,14 @@
     <Compile Include="AdornerContainer.cs" />
     <Compile Include="ApplicationTreeItem.cs" />
     <Compile Include="BringIntoViewBehavior.cs" />
+    <Compile Include="Controls\ScrollViewerSyncBehavior.cs" />
+    <Compile Include="Controls\SnoopWindow.cs" />
+    <Compile Include="Controls\TreeListView.cs" />
     <Compile Include="Converters\ArgbToPartsConverter.cs" />
     <Compile Include="Converters\FilterTypeToIntConverter.cs" />
     <Compile Include="Converters\CsvStringToArrayConverter.cs" />
     <Compile Include="Converters\IsSupportedRuntimeTypeConverter.cs" />
+    <Compile Include="Controls\LevelToIndentConverter .cs" />
     <Compile Include="Converters\SnoopParameterInfoConverter.cs" />
     <Compile Include="DebugListenerTab\DebugListenerControl.xaml.cs">
       <DependentUpon>DebugListenerControl.xaml</DependentUpon>
@@ -200,7 +208,6 @@
     <Compile Include="EventTracker.cs" />
     <Compile Include="Infrastructure\ComboBoxSettings.cs" />
     <Compile Include="Infrastructure\ExtensionMethods.cs" />
-    <Compile Include="Infrastructure\ISkipDelve.cs" />
     <Compile Include="Infrastructure\ObservableCollectionExtensions.cs" />
     <Compile Include="Infrastructure\RelayCommand.cs" />
     <Compile Include="Infrastructure\ResourceDictionaryKeyHelpers.cs" />
@@ -210,7 +217,6 @@
     <Compile Include="Infrastructure\WhenLoaded.cs" />
     <Compile Include="Infrastructure\ZoomerUtilities.cs" />
     <Compile Include="Injector.cs" />
-    <Compile Include="Inspector.cs" />
     <Compile Include="MethodsTab\AssemblyNamePair.cs" />
     <Compile Include="MethodsTab\FullTypeSelector.xaml.cs">
       <DependentUpon>FullTypeSelector.xaml</DependentUpon>
@@ -264,7 +270,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="PropertyGrid2.xaml">
+    <Page Include="PropertyGrid.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -325,8 +331,8 @@
     <Compile Include="EventsView.xaml.cs">
       <DependentUpon>EventsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PropertyGrid2.xaml.cs">
-      <DependentUpon>PropertyGrid2.xaml</DependentUpon>
+    <Compile Include="PropertyGrid.xaml.cs">
+      <DependentUpon>PropertyGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="PropertyInspector.xaml.cs">
       <DependentUpon>PropertyInspector.xaml</DependentUpon>
@@ -376,7 +382,7 @@
     <EmbeddedResource Include="Resources\SnoopCrosshairsCursor.cur" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="..\Logo\SnoopX.ico">
+    <Resource Include="..\..\assets\SnoopX.ico">
       <Link>SnoopX.ico</Link>
     </Resource>
   </ItemGroup>

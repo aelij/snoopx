@@ -14,6 +14,11 @@ namespace Snoop
 
 	public class DelayedCall
 	{
+        private readonly DelayedHandler _handler;
+        private readonly DispatcherPriority _priority;
+
+        private bool _queued;
+
 		public DelayedCall(DelayedHandler handler, DispatcherPriority priority)
 		{
 			_handler = handler;
@@ -22,18 +27,14 @@ namespace Snoop
 
 		public void Enqueue()
 		{
-			if (!_queued)
-			{
-				_queued = true;
+		    if (_queued) return;
+		    _queued = true;
 
-				Dispatcher dispatcher;
-				if (Application.Current == null || SnoopModes.MultipleDispatcherMode)
-					dispatcher = Dispatcher.CurrentDispatcher;
-				else
-					dispatcher = Application.Current.Dispatcher;
+		    var dispatcher = Application.Current == null || SnoopModes.MultipleDispatcherMode
+		        ? Dispatcher.CurrentDispatcher
+		        : Application.Current.Dispatcher;
 
-				dispatcher.BeginInvoke(_priority, new DispatcherOperationCallback(Process), null);
-			}
+		    dispatcher.BeginInvoke(_priority, new DispatcherOperationCallback(Process), null);
 		}
 
 
@@ -45,10 +46,5 @@ namespace Snoop
 
 			return null;
 		}
-
-		private readonly DelayedHandler _handler;
-		private readonly DispatcherPriority _priority;
-
-		private bool _queued;
 	}
 }

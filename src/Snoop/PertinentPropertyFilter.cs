@@ -4,7 +4,6 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System;
 using System.ComponentModel;
 using System.Windows;
 
@@ -12,37 +11,43 @@ namespace Snoop
 {
 	public class PertinentPropertyFilter
 	{
+        private readonly FrameworkElement _element;
+
 		public PertinentPropertyFilter(object target)
 		{
-			_target = target;
-			_element = _target as FrameworkElement;
+			_element = target as FrameworkElement;
 		}
-
 
 		public bool Filter(PropertyDescriptor property)
 		{
-			if (_element == null)
-				return true;
+		    if (_element == null)
+		    {
+		        return true;
+		    }
 
 			// Filter the 20 stylistic set properties that I've never seen used.
-			if (property.Name.Contains("Typography.StylisticSet"))
-				return false;
+		    if (property.Name.Contains("Typography.StylisticSet"))
+		    {
+		        return false;
+		    }
 
-			AttachedPropertyBrowsableForChildrenAttribute attachedPropertyForChildren = (AttachedPropertyBrowsableForChildrenAttribute)property.Attributes[typeof(AttachedPropertyBrowsableForChildrenAttribute)];
-			AttachedPropertyBrowsableForTypeAttribute attachedPropertyForType = (AttachedPropertyBrowsableForTypeAttribute)property.Attributes[typeof(AttachedPropertyBrowsableForTypeAttribute)];
-			AttachedPropertyBrowsableWhenAttributePresentAttribute attachedPropertyForAttribute = (AttachedPropertyBrowsableWhenAttributePresentAttribute)property.Attributes[typeof(AttachedPropertyBrowsableWhenAttributePresentAttribute)];
+			var attachedPropertyForChildren = (AttachedPropertyBrowsableForChildrenAttribute)property.Attributes[typeof(AttachedPropertyBrowsableForChildrenAttribute)];
+			var attachedPropertyForType = (AttachedPropertyBrowsableForTypeAttribute)property.Attributes[typeof(AttachedPropertyBrowsableForTypeAttribute)];
+			var attachedPropertyForAttribute = (AttachedPropertyBrowsableWhenAttributePresentAttribute)property.Attributes[typeof(AttachedPropertyBrowsableWhenAttributePresentAttribute)];
 
 			if (attachedPropertyForChildren != null)
 			{
-				DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor.FromProperty(property);
-				if (dpd == null)
-					return false;
+				var descriptor = DependencyPropertyDescriptor.FromProperty(property);
+			    if (descriptor == null)
+			    {
+			        return false;
+			    }
 
 				var localElement = _element;
 				do
 				{
 					localElement = localElement.Parent as FrameworkElement;
-					if (localElement != null && dpd.DependencyProperty.OwnerType.IsInstanceOfType(localElement))
+					if (localElement != null && descriptor.DependencyProperty.OwnerType.IsInstanceOfType(localElement))
 						return true;
 				}
 				while (attachedPropertyForChildren.IncludeDescendants && localElement != null);
@@ -64,19 +69,13 @@ namespace Snoop
 
 		        return false;
 		    }
-		    if (attachedPropertyForAttribute != null)
+		    if (attachedPropertyForAttribute == null)
 		    {
-		        Attribute dependentAttribute = TypeDescriptor.GetAttributes(_target)[attachedPropertyForAttribute.AttributeType];
-		        if (dependentAttribute != null)
-		            return !dependentAttribute.IsDefaultAttribute();
-		        return false;
+		        return true;
 		    }
 
-		    return true;
+		    var dependentAttribute = TypeDescriptor.GetAttributes(_element)[attachedPropertyForAttribute.AttributeType];
+		    return dependentAttribute != null && !dependentAttribute.IsDefaultAttribute();
 		}
-
-
-		private readonly object _target;
-		private readonly FrameworkElement _element;
 	}
 }

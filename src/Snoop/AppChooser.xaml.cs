@@ -74,9 +74,6 @@ namespace Snoop
 								this._windows.Add(window);
 							}
 						}
-
-						if (this._windows.Count > 0)
-							this._windowsView.MoveCurrentTo(this._windows[0]);
 					}
 					finally
 					{

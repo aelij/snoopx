@@ -131,7 +131,11 @@ namespace Snoop
             get
             {
                 Process process = OwningProcess;
-                return process.MainWindowTitle + " - " + process.ProcessName + " [" + process.Id + "]";
+                if (!string.IsNullOrEmpty(process.MainWindowTitle))
+                {
+                    return process.MainWindowTitle + " - " + process.ProcessName + " [" + process.Id + "]";
+                }
+                return process.ProcessName + " [" + process.Id + "]";
             }
         }
 

@@ -22,24 +22,31 @@ namespace Snoop
 {
     public partial class Zoomer
     {
-        static Zoomer()
-        {
-            ResetCommand.InputGestures.Add(new MouseGesture(MouseAction.LeftDoubleClick));
-            ResetCommand.InputGestures.Add(new KeyGesture(Key.F5));
-            ZoomInCommand.InputGestures.Add(new KeyGesture(Key.OemPlus));
-            ZoomInCommand.InputGestures.Add(new KeyGesture(Key.Up, ModifierKeys.Control));
-            ZoomOutCommand.InputGestures.Add(new KeyGesture(Key.OemMinus));
-            ZoomOutCommand.InputGestures.Add(new KeyGesture(Key.Down, ModifierKeys.Control));
-            PanLeftCommand.InputGestures.Add(new KeyGesture(Key.Left));
-            PanRightCommand.InputGestures.Add(new KeyGesture(Key.Right));
-            PanUpCommand.InputGestures.Add(new KeyGesture(Key.Up));
-            PanDownCommand.InputGestures.Add(new KeyGesture(Key.Down));
-            SwitchTo2DCommand.InputGestures.Add(new KeyGesture(Key.F2));
-            SwitchTo3DCommand.InputGestures.Add(new KeyGesture(Key.F3));
-        }
+        public static readonly RoutedCommand ResetCommand = new RoutedCommand("Reset", typeof(Zoomer), new InputGestureCollection { new MouseGesture(MouseAction.LeftDoubleClick), new KeyGesture(Key.F5) });
+        public static readonly RoutedCommand ZoomInCommand = new RoutedCommand("ZoomIn", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.OemPlus), new KeyGesture(Key.Up, ModifierKeys.Control) });
+        public static readonly RoutedCommand ZoomOutCommand = new RoutedCommand("ZoomOut", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.OemMinus), new KeyGesture(Key.Down, ModifierKeys.Control) });
+        public static readonly RoutedCommand PanLeftCommand = new RoutedCommand("PanLeft", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.Left) });
+        public static readonly RoutedCommand PanRightCommand = new RoutedCommand("PanRight", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.Right) });
+        public static readonly RoutedCommand PanUpCommand = new RoutedCommand("PanUp", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.Up) });
+        public static readonly RoutedCommand PanDownCommand = new RoutedCommand("PanDown", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.Down) });
+        public static readonly RoutedCommand SwitchTo2DCommand = new RoutedCommand("SwitchTo2D", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.F2) });
+        public static readonly RoutedCommand SwitchTo3DCommand = new RoutedCommand("SwitchTo3D", typeof(Zoomer), new InputGestureCollection { new KeyGesture(Key.F3) });
+
+        private const double ZoomFactor = 1.1;
+
+        private readonly TranslateTransform _translation;
+        private readonly ScaleTransform _zoom;
+        private readonly TransformGroup _transform;
+        private Point _downPoint;
+        private object _target;
+        private VisualTree3DView _visualTree3DView;
 
         public Zoomer()
         {
+            _translation = new TranslateTransform();
+            _zoom = new ScaleTransform();
+            _transform = new TransformGroup();
+
             CommandBindings.Add(new CommandBinding(ResetCommand, HandleReset, CanReset));
             CommandBindings.Add(new CommandBinding(ZoomInCommand, HandleZoomIn));
             CommandBindings.Add(new CommandBinding(ZoomOutCommand, HandleZoomOut));
@@ -87,7 +94,7 @@ namespace Snoop
             }
             else
             {
-                dispatcher.Invoke((Action)GoBabyGo);
+                dispatcher.Invoke(GoBabyGo);
             }
         }
 
@@ -133,16 +140,6 @@ namespace Snoop
                     Viewbox.Child = element;
             }
         }
-
-        public static readonly RoutedCommand ResetCommand = new RoutedCommand("Reset", typeof(Zoomer));
-        public static readonly RoutedCommand ZoomInCommand = new RoutedCommand("ZoomIn", typeof(Zoomer));
-        public static readonly RoutedCommand ZoomOutCommand = new RoutedCommand("ZoomOut", typeof(Zoomer));
-        public static readonly RoutedCommand PanLeftCommand = new RoutedCommand("PanLeft", typeof(Zoomer));
-        public static readonly RoutedCommand PanRightCommand = new RoutedCommand("PanRight", typeof(Zoomer));
-        public static readonly RoutedCommand PanUpCommand = new RoutedCommand("PanUp", typeof(Zoomer));
-        public static readonly RoutedCommand PanDownCommand = new RoutedCommand("PanDown", typeof(Zoomer));
-        public static readonly RoutedCommand SwitchTo2DCommand = new RoutedCommand("SwitchTo2D", typeof(Zoomer));
-        public static readonly RoutedCommand SwitchTo3DCommand = new RoutedCommand("SwitchTo3D", typeof(Zoomer));
 
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -195,37 +192,45 @@ namespace Snoop
                 ZScaleSlider.Value = 0;
             }
         }
-        private void CanReset(object target, CanExecuteRoutedEventArgs args)
+
+        private static void CanReset(object target, CanExecuteRoutedEventArgs args)
         {
             args.CanExecute = true;
             args.Handled = true;
         }
+
         private void HandleZoomIn(object target, ExecutedRoutedEventArgs args)
         {
             Point offset = Mouse.GetPosition(Viewbox);
             Zoom(ZoomFactor, offset);
         }
+
         private void HandleZoomOut(object target, ExecutedRoutedEventArgs args)
         {
             Point offset = Mouse.GetPosition(Viewbox);
             Zoom(1 / ZoomFactor, offset);
         }
+
         private void HandlePanLeft(object target, ExecutedRoutedEventArgs args)
         {
             _translation.X -= 5;
         }
+
         private void HandlePanRight(object target, ExecutedRoutedEventArgs args)
         {
             _translation.X += 5;
         }
+
         private void HandlePanUp(object target, ExecutedRoutedEventArgs args)
         {
             _translation.Y -= 5;
         }
+
         private void HandlePanDown(object target, ExecutedRoutedEventArgs args)
         {
             _translation.Y += 5;
         }
+
         private void HandleSwitchTo2D(object target, ExecutedRoutedEventArgs args)
         {
             if (_visualTree3DView != null)
@@ -235,6 +240,7 @@ namespace Snoop
                 ZScaleSlider.Visibility = Visibility.Collapsed;
             }
         }
+
         private void HandleSwitchTo3D(object target, ExecutedRoutedEventArgs args)
         {
             Visual visual = _target as Visual;
@@ -253,6 +259,7 @@ namespace Snoop
                 ZScaleSlider.Visibility = Visibility.Visible;
             }
         }
+
         private void CanSwitchTo3D(object target, CanExecuteRoutedEventArgs args)
         {
             args.CanExecute = (_target is Visual);
@@ -264,6 +271,7 @@ namespace Snoop
             _downPoint = e.GetPosition(DocumentRoot);
             DocumentRoot.CaptureMouse();
         }
+
         private void Content_MouseMove(object sender, MouseEventArgs e)
         {
             if (DocumentRoot.IsMouseCaptured)
@@ -275,10 +283,12 @@ namespace Snoop
                 _downPoint = e.GetPosition(DocumentRoot);
             }
         }
+
         private void Content_MouseUp(object sender, MouseEventArgs e)
         {
             DocumentRoot.ReleaseMouseCapture();
         }
+
         private void Content_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             double zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
@@ -294,7 +304,7 @@ namespace Snoop
             }
         }
 
-        private UIElement CreateIfPossible(object item)
+        private static UIElement CreateIfPossible(object item)
         {
             return ZoomerUtilities.CreateIfPossible(item);
         }
@@ -389,17 +399,6 @@ namespace Snoop
 
             return root;
         }
-
-        private readonly TranslateTransform _translation = new TranslateTransform();
-        private readonly ScaleTransform _zoom = new ScaleTransform();
-        private readonly TransformGroup _transform = new TransformGroup();
-        private Point _downPoint;
-        private object _target;
-        private VisualTree3DView _visualTree3DView;
-
-        private const double ZoomFactor = 1.1;
-
-        private delegate void Action();
     }
 
     public class DoubleToWhitenessConverter : IValueConverter

@@ -18,16 +18,26 @@ using Snoop.Infrastructure;
 
 namespace Snoop
 {
-    public partial class PropertyGrid2 : INotifyPropertyChanged
+    public partial class PropertyGrid : INotifyPropertyChanged
     {
         public static readonly RoutedCommand ShowBindingErrorsCommand = new RoutedCommand();
         public static readonly RoutedCommand ClearCommand = new RoutedCommand();
         public static readonly RoutedCommand SortCommand = new RoutedCommand();
 
+        private readonly DelayedCall _filterCall;
+        private readonly DispatcherTimer _filterTimer;
+        private readonly ObservableCollection<PropertyInformation> _properties;
+        private readonly ObservableCollection<PropertyInformation> _allProperties;
 
-        public PropertyGrid2()
+        private bool _unloaded;
+        private ListSortDirection _direction;
+        private PropertyFilter _filter;
+
+        public PropertyGrid()
         {
-            _processIncrementalCall = new DelayedCall(ProcessIncrementalPropertyAdd, DispatcherPriority.Background);
+            _direction = ListSortDirection.Ascending;
+            _allProperties = new ObservableCollection<PropertyInformation>();
+            _properties = new ObservableCollection<PropertyInformation>();
             _filterCall = new DelayedCall(ProcessFilter, DispatcherPriority.Background);
 
             InitializeComponent();
@@ -47,7 +57,6 @@ namespace Snoop
                 _filterTimer.Stop();
             };
         }
-
 
         public bool NameValueOnly
         {
@@ -75,9 +84,7 @@ namespace Snoop
         {
             get { return _properties; }
         }
-        private readonly ObservableCollection<PropertyInformation> _properties = new ObservableCollection<PropertyInformation>();
-        private readonly ObservableCollection<PropertyInformation> _allProperties = new ObservableCollection<PropertyInformation>();
-
+   
         public object Target
         {
             get { return GetValue(TargetProperty); }
@@ -89,12 +96,12 @@ namespace Snoop
             (
                 "Target",
                 typeof(object),
-                typeof(PropertyGrid2),
+                typeof(PropertyGrid),
                 new PropertyMetadata(HandleTargetChanged)
             );
         private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            PropertyGrid2 propertyGrid = (PropertyGrid2)d;
+            PropertyGrid propertyGrid = (PropertyGrid)d;
             propertyGrid.ChangeTarget(e.NewValue);
         }
 
@@ -135,38 +142,32 @@ namespace Snoop
             }
         }
 
-
-        protected override void OnFilterChanged()
+        protected virtual void OnFilterChanged()
         {
-            base.OnFilterChanged();
-
             _filterTimer.Stop();
             _filterTimer.Start();
         }
-
 
         /// <summary>
         /// Delayed loading of the property inspector to avoid creating the entire list of property
         /// editors immediately after selection. Keeps that app running smooth.
         /// </summary>
         /// <returns></returns>
-        private void ProcessIncrementalPropertyAdd()
+        private async void ProcessIncrementalPropertyAddAsync()
         {
-            int numberToAdd = 10;
+            const int batchAmount = 10;
 
-            if (_propertiesToAdd == null)
-            {
-                _propertiesToAdd = PropertyInformation.GetProperties(_target).GetEnumerator();
+            var propertiesToAdd = PropertyInformation.GetProperties(_target);
 
-                numberToAdd = 0;
-            }
-            int i = 0;
-            for (; i < numberToAdd && _propertiesToAdd.MoveNext(); ++i)
+            await Dispatcher.Yield(DispatcherPriority.Background);
+
+            int visiblePropertyCount = 0;
+
+            foreach (var property in propertiesToAdd)
             {
                 // iterate over the PropertyInfo objects,
                 // setting the property grid's filter on each object,
                 // and adding those properties to the observable collection of propertiesToSort (this.properties)
-                PropertyInformation property = _propertiesToAdd.Current;
                 property.Filter = Filter;
 
                 if (property.IsVisible)
@@ -177,16 +178,29 @@ namespace Snoop
 
                 // checking whether a property is visible ... actually runs the property filtering code
                 if (property.IsVisible)
-                    property.Index = _visiblePropertyCount++;
-            }
+                {
+                    property.Index = visiblePropertyCount++;
+                }
 
-            if (i == numberToAdd)
-                _processIncrementalCall.Enqueue();
-            else
-                _propertiesToAdd = null;
+                if ((visiblePropertyCount % batchAmount) == 0)
+                {
+                    await Dispatcher.Yield(DispatcherPriority.Background);
+                }
+            }
         }
 
-        private void HandleShowBindingErrors(object sender, ExecutedRoutedEventArgs eventArgs)
+        public PropertyFilter Filter
+        {
+            get { return _filter; }
+            set
+            {
+                if (Equals(value, _filter)) return;
+                _filter = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private static void HandleShowBindingErrors(object sender, ExecutedRoutedEventArgs eventArgs)
         {
             PropertyInformation propertyInformation = (PropertyInformation)eventArgs.Parameter;
             Window window = new Window
@@ -210,20 +224,22 @@ namespace Snoop
                 };
             window.Show();
         }
-        private void CanShowBindingErrors(object sender, CanExecuteRoutedEventArgs e)
+
+        private static void CanShowBindingErrors(object sender, CanExecuteRoutedEventArgs e)
         {
             if (e.Parameter != null && !string.IsNullOrEmpty(((PropertyInformation)e.Parameter).BindingError))
                 e.CanExecute = true;
             e.Handled = true;
         }
 
-        private void CanClear(object sender, CanExecuteRoutedEventArgs e)
+        private static void CanClear(object sender, CanExecuteRoutedEventArgs e)
         {
             if (e.Parameter != null && ((PropertyInformation)e.Parameter).IsLocallySet)
                 e.CanExecute = true;
             e.Handled = true;
         }
-        private void HandleClear(object sender, ExecutedRoutedEventArgs e)
+
+        private static void HandleClear(object sender, ExecutedRoutedEventArgs e)
         {
             ((PropertyInformation)e.Parameter).Clear();
         }
@@ -239,7 +255,6 @@ namespace Snoop
             ListSortDirection direction = (ListSortDirection)columnHeader.Tag;
             return (ListSortDirection)(columnHeader.Tag = (ListSortDirection)(((int)direction + 1) % 2));
         }
-
 
         private void HandleSort(object sender, ExecutedRoutedEventArgs args)
         {
@@ -338,7 +353,9 @@ namespace Snoop
         private void HandleUnloaded(object sender, EventArgs e)
         {
             foreach (PropertyInformation property in _properties)
+            {
                 property.Teardown();
+            }
 
             _unloaded = true;
         }
@@ -371,7 +388,7 @@ namespace Snoop
             Sort(comparator, direction, _allProperties);
         }
 
-        private void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction, ObservableCollection<PropertyInformation> propertiesToSort)
+        private static void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction, ObservableCollection<PropertyInformation> propertiesToSort)
         {
             List<PropertyInformation> sorter = new List<PropertyInformation>(propertiesToSort);
             sorter.Sort(comparator);
@@ -388,24 +405,11 @@ namespace Snoop
         {
             _allProperties.Clear();
             _properties.Clear();
-            _visiblePropertyCount = 0;
 
-            _propertiesToAdd = null;
-            _processIncrementalCall.Enqueue();
+            ProcessIncrementalPropertyAddAsync();
         }
 
-
         private object _target;
-
-        private IEnumerator<PropertyInformation> _propertiesToAdd;
-        private readonly DelayedCall _processIncrementalCall;
-        private readonly DelayedCall _filterCall;
-        private int _visiblePropertyCount;
-        private bool _unloaded;
-        private ListSortDirection _direction = ListSortDirection.Ascending;
-
-        private readonly DispatcherTimer _filterTimer;
-
 
         private static int CompareNames(PropertyInformation one, PropertyInformation two)
         {
