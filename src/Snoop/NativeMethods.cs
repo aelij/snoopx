@@ -23,8 +23,8 @@ namespace Snoop
 		{
 			get
 			{
-				List<IntPtr> windowList = new List<IntPtr>();
-				GCHandle handle = GCHandle.Alloc(windowList);
+				var windowList = new List<IntPtr>();
+				var handle = GCHandle.Alloc(windowList);
 				try
 				{
 					EnumWindows(EnumWindowsCallback, (IntPtr)handle);
@@ -37,6 +37,7 @@ namespace Snoop
 				return windowList.ToArray();
 			}
 		}
+
 		public static Process GetWindowThreadProcess(IntPtr hwnd)
 		{
 			int processID;
@@ -53,6 +54,7 @@ namespace Snoop
 		}
 
 		private delegate bool EnumWindowsCallBackDelegate(IntPtr hwnd, IntPtr lParam);
+
 		private static bool EnumWindowsCallback(IntPtr hwnd, IntPtr lParam)
 		{
 			((List<IntPtr>)((GCHandle)lParam).Target).Add(hwnd);

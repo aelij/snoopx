@@ -13,6 +13,7 @@ All other rights reserved.
 	xmlns:local="clr-namespace:Snoop.MethodsTab"
 	xmlns:snoopNs="clr-namespace:Snoop"
 	xmlns:converters="clr-namespace:Snoop.Converters"
+	xmlns:views="clr-namespace:Snoop.Views"
 	mc:Ignorable="d"
 	d:DesignWidth="420"
 	d:DesignHeight="300"
@@ -265,7 +266,7 @@ All other rights reserved.
 				FontWeight="Bold"
 				Text="Result Properties:"
 			/>
-			<snoopNs:PropertyInspector x:Name="PropertyInspector" Grid.Row="1"/>
+			<views:PropertyInspector x:Name="PropertyInspector" Grid.Row="1"/>
 		</Grid>
 	</Grid>
 </UserControl>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using Snoop.VisualTree;
 
 namespace Snoop
 {
@@ -38,17 +39,13 @@ namespace Snoop
 
                 // if we already have a property of that name on this object, remove it
                 var existingPropInfo = propInfoList.FirstOrDefault(l => l.PropertyName == propInfo.DisplayName);
-                if (existingPropInfo != null)
+                if (existingPropInfo.PropertyName != null)
                 {
                     propInfoList.Remove(existingPropInfo);
                 }
 
                 // finally add the edited property info
-                propInfoList.Add(new PropertyValueInfo
-                {
-                    PropertyName = propInfo.DisplayName,
-                    PropertyValue = propInfo.Value
-                });
+                propInfoList.Add(new PropertyValueInfo(propInfo.DisplayName, propInfo.Value));
             }
         }
 
@@ -100,6 +97,18 @@ namespace Snoop
 
             Debug.WriteLine(sb.ToString());
             Clipboard.SetText(sb.ToString());
+        }
+
+        private struct PropertyValueInfo
+        {
+            public PropertyValueInfo(string propertyName, object propertyValue)
+            {
+                PropertyName = propertyName;
+                PropertyValue = propertyValue;
+            }
+
+            public readonly string PropertyName;
+            public readonly object PropertyValue;
         }
     }
 }

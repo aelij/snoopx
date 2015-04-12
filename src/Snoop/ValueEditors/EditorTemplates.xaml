@@ -8,7 +8,7 @@ All other rights reserved.
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:my="clr-namespace:Snoop"
->
+	xmlns:controls="clr-namespace:Snoop.Controls">
 	<Style TargetType="{x:Type my:StandardValueEditor}">
 		<Style.Resources>
 			<DataTemplate x:Key="UnselectedValueTemplate">
@@ -16,7 +16,7 @@ All other rights reserved.
 			</DataTemplate>
 
 			<DataTemplate x:Key="SelectedValueTemplate">
-				<my:EditTextBox Height="16" Text="{Binding StringValue}" HorizontalAlignment="Stretch" Padding="1" BorderThickness="0" Background="White" VerticalContentAlignment="Center"/>
+				<controls:EditTextBox Height="16" Text="{Binding StringValue}" HorizontalAlignment="Stretch" Padding="1" BorderThickness="0" Background="White" VerticalContentAlignment="Center"/>
 			</DataTemplate>
 		</Style.Resources>
 		
@@ -94,7 +94,7 @@ All other rights reserved.
 			</DataTemplate>
 
 			<DataTemplate x:Key="SelectedValueTemplate">
-				<my:EditTextBox Height="16" Text="{Binding StringValue}" HorizontalAlignment="Stretch" Padding="1" BorderThickness="0" Background="White" VerticalContentAlignment="Center"/>
+				<controls:EditTextBox Height="16" Text="{Binding StringValue}" HorizontalAlignment="Stretch" Padding="1" BorderThickness="0" Background="White" VerticalContentAlignment="Center"/>
 			</DataTemplate>
 
 			<DataTemplate x:Key="EmptyValueTemplate"/>

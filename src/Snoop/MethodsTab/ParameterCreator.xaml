@@ -13,6 +13,7 @@ All other rights reserved.
         mc:Ignorable="d"
         xmlns:local="clr-namespace:Snoop.MethodsTab"
         xmlns:snoopNs="clr-namespace:Snoop"
+        xmlns:views="clr-namespace:Snoop.Views"
         Width="700"
         Height="350"
         Title="ParameterCreator">
@@ -32,7 +33,7 @@ All other rights reserved.
                    Grid.Column="0"
                    HorizontalAlignment="Left"
                    TextWrapping="Wrap" />
-        <snoopNs:PropertyInspector x:Name="PropertyInspector"
+        <views:PropertyInspector x:Name="PropertyInspector"
                                    Grid.Row="1"
                                    RootTarget="{Binding Path=RootTarget, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:ParameterCreator}}}"
                                    NameValueOnly="True" />

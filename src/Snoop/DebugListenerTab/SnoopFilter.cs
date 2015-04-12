@@ -1,52 +1,40 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Snoop.Annotations;
 
 namespace Snoop.DebugListenerTab
 {
 	[Serializable]
 	public abstract class SnoopFilter : INotifyPropertyChanged
 	{
-		protected bool _isGrouped;
-		protected string _groupId = string.Empty;
-		protected bool _isDirty;
-		protected bool _isInverse;
-		//protected string _isInverseText = string.Empty;
+		private bool _isGrouped;
+        private string _groupId = string.Empty;
+	    private bool _isInverse;
 
 		public void ResetDirtyFlag()
 		{
-			_isDirty = false;
+			IsDirty = false;
 		}
 
-		public bool IsDirty
-		{
-			get
-			{
-				return _isDirty;
-			}
-		}
+		public bool IsDirty { get; private set; }
 
-		public abstract bool FilterMatches(string debugLine);
+	    public abstract bool FilterMatches(string debugLine);
 
 		public virtual bool SupportsGrouping
 		{
-			get
-			{
-				return true;
-			}
+			get { return true; }
 		}
 
 		public bool IsInverse
 		{
-			get
-			{
-				return _isInverse;
-			}
+			get { return _isInverse; }
 			set
 			{
 				if (value != _isInverse)
 				{
 					_isInverse = value;
-					RaisePropertyChanged("IsInverse");
+					RaisePropertyChanged();
 					RaisePropertyChanged("IsInverseText");
 				}
 			}
@@ -62,36 +50,31 @@ namespace Snoop.DebugListenerTab
 
 		public bool IsGrouped
 		{
-			get
-			{
-				return _isGrouped;
-			}
+			get { return _isGrouped; }
 			set
 			{
 				_isGrouped = value;
-				RaisePropertyChanged("IsGrouped");
+				RaisePropertyChanged();
 				GroupId = string.Empty;
 			}
 		}
 
 		public virtual string GroupId
 		{
-			get
-			{
-				return _groupId;
-			}
+			get { return _groupId; }
 			set
 			{
 				_groupId = value;
-				RaisePropertyChanged("GroupId");
+				RaisePropertyChanged();
 			}
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		protected void RaisePropertyChanged(string propertyName)
+        [NotifyPropertyChangedInvocator]
+		protected void RaisePropertyChanged([CallerMemberName]string propertyName = null)
 		{
-			_isDirty = true;
+			IsDirty = true;
 			var handler = PropertyChanged;
 			if (handler != null)
 				handler(this, new PropertyChangedEventArgs(propertyName));

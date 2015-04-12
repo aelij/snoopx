@@ -109,11 +109,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EditUserFilters.xaml">
+    <Page Include="Views\EditUserFilters.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ErrorDialog.xaml">
+    <Page Include="Views\ErrorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -133,25 +133,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="ScreenshotDialog.xaml">
+    <Page Include="Views\ScreenshotDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Simple Styles.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Themes\Generic.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ZoomerControl.xaml">
+    <Page Include="Views\ZoomerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="SnoopabilityFeedbackWindow.xaml">
+    <Page Include="Views\SnoopabilityFeedbackWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -170,11 +166,15 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Compile Include="AdornerContainer.cs" />
-    <Compile Include="ApplicationTreeItem.cs" />
-    <Compile Include="BringIntoViewBehavior.cs" />
+    <Compile Include="Controls\AdornerContainer.cs" />
+    <Compile Include="Controls\NoFocusHyperlink.cs" />
+    <Compile Include="Utilities\Injector.cs" />
+    <Compile Include="VisualTree\ApplicationTreeItem.cs" />
+    <Compile Include="Controls\BringIntoViewBehavior.cs" />
+    <Compile Include="Controls\EditTextBox.cs" />
     <Compile Include="Controls\ScrollViewerSyncBehavior.cs" />
     <Compile Include="Controls\SnoopWindow.cs" />
+    <Compile Include="Controls\TrackballBehavior.cs" />
     <Compile Include="Controls\TreeListView.cs" />
     <Compile Include="Converters\ArgbToPartsConverter.cs" />
     <Compile Include="Converters\FilterTypeToIntConverter.cs" />
@@ -195,20 +195,17 @@
     <Compile Include="DebugListenerTab\SnoopFilter.cs" />
     <Compile Include="DebugListenerTab\SnoopMultipleFilter.cs" />
     <Compile Include="DebugListenerTab\SnoopSingleFilter.cs" />
-    <Compile Include="DelayedCall.cs" />
     <Compile Include="EditedPropertiesHelper.cs" />
-    <Compile Include="EditTextBox.cs" />
-    <Compile Include="EditUserFilters.xaml.cs">
+    <Compile Include="Utilities\VisualTreeHelperEx.cs" />
+    <Compile Include="Views\EditUserFilters.xaml.cs">
       <DependentUpon>EditUserFilters.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ErrorDialog.xaml.cs">
+    <Compile Include="Views\ErrorDialog.xaml.cs">
       <DependentUpon>ErrorDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="EventsListener.cs" />
-    <Compile Include="EventTracker.cs" />
+    <Compile Include="Utilities\EventsListener.cs" />
+    <Compile Include="Utilities\EventTracker.cs" />
     <Compile Include="Infrastructure\ComboBoxSettings.cs" />
-    <Compile Include="Infrastructure\ExtensionMethods.cs" />
-    <Compile Include="Infrastructure\ObservableCollectionExtensions.cs" />
     <Compile Include="Infrastructure\RelayCommand.cs" />
     <Compile Include="Infrastructure\ResourceDictionaryKeyHelpers.cs" />
     <Compile Include="Infrastructure\SnoopModes.cs" />
@@ -216,7 +213,6 @@
     <Compile Include="Infrastructure\ResourceKeyCache.cs" />
     <Compile Include="Infrastructure\WhenLoaded.cs" />
     <Compile Include="Infrastructure\ZoomerUtilities.cs" />
-    <Compile Include="Injector.cs" />
     <Compile Include="MethodsTab\AssemblyNamePair.cs" />
     <Compile Include="MethodsTab\FullTypeSelector.xaml.cs">
       <DependentUpon>FullTypeSelector.xaml</DependentUpon>
@@ -237,48 +233,46 @@
       <DependentUpon>TypeSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="NativeMethods.cs" />
-    <Compile Include="NoFocusHyperlink.cs" />
-    <Compile Include="ObjectToStringConverter.cs" />
+    <Compile Include="Converters\ObjectToStringConverter.cs" />
     <Compile Include="PertinentPropertyFilter.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyValueInfo.cs" />
-    <Compile Include="WindowInfo.cs" />
-    <Compile Include="ZoomerControl.xaml.cs">
+    <Compile Include="Utilities\DelayedCall.cs" />
+    <Compile Include="Utilities\SnoopWindowUtils.cs" />
+    <Compile Include="Utilities\VisualCaptureUtil.cs" />
+    <Compile Include="Utilities\WindowInfo.cs" />
+    <Compile Include="Views\ZoomerControl.xaml.cs">
       <DependentUpon>ZoomerControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="AppChooser.xaml">
+    <Page Include="Views\AppChooser.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Icons.xaml">
+    <Page Include="Resources\Icons.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="AppChooser.xaml.cs">
+    <Compile Include="Views\AppChooser.xaml.cs">
       <DependentUpon>AppChooser.xaml</DependentUpon>
     </Compile>
-    <Page Include="Previewer.xaml">
+    <Page Include="Views\Previewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="ProperTreeViewResources.xaml">
+    <Page Include="Views\EventsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="EventsView.xaml">
+    <Page Include="Controls\PropertyGrid.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="PropertyGrid.xaml">
+    <Page Include="Views\PropertyInspector.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="PropertyInspector.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="SnoopUI.xaml">
+    <Page Include="Views\SnoopUI.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -290,11 +284,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="WindowFinder.xaml">
+    <Page Include="Views\WindowFinder.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Zoomer.xaml">
+    <Page Include="Views\Zoomer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -306,17 +300,14 @@
     <Compile Include="ProperTreeView.cs" />
     <Compile Include="PropertyFilter.cs" />
     <Compile Include="PropertyInformation.cs" />
-    <Compile Include="ResourceContainerItem.cs" />
-    <Compile Include="ResourceDictionaryItem.cs" />
-    <Compile Include="ScreenshotDialog.xaml.cs">
+    <Compile Include="VisualTree\ResourceContainerItem.cs" />
+    <Compile Include="VisualTree\ResourceDictionaryItem.cs" />
+    <Compile Include="Views\ScreenshotDialog.xaml.cs">
       <DependentUpon>ScreenshotDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SettingBindingExtension.cs" />
-    <Compile Include="SnoopabilityFeedbackWindow.xaml.cs">
+    <Compile Include="Views\SnoopabilityFeedbackWindow.xaml.cs">
       <DependentUpon>SnoopabilityFeedbackWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SnoopWindowUtils.cs" />
-    <Compile Include="TrackballBehavior.cs" />
     <Compile Include="ValueEditors\BoolValueEditor.cs" />
     <Compile Include="ValueEditors\BrushValueEditor.cs" />
     <Compile Include="ValueEditors\EnumValueEditor.cs" />
@@ -326,32 +317,30 @@
     <Compile Include="ValueEditors\StandardValueEditor.cs" />
     <Compile Include="ValueEditors\ValueEditor.cs" />
     <Compile Include="ValueEditors\ValueEditorTemplateSelector.cs" />
-    <Compile Include="VisualCaptureUtil.cs" />
-    <Compile Include="VisualItem.cs" />
-    <Compile Include="EventsView.xaml.cs">
+    <Compile Include="VisualTree\VisualItem.cs" />
+    <Compile Include="Views\EventsView.xaml.cs">
       <DependentUpon>EventsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PropertyGrid.xaml.cs">
+    <Compile Include="Controls\PropertyGrid.xaml.cs">
       <DependentUpon>PropertyGrid.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PropertyInspector.xaml.cs">
+    <Compile Include="Views\PropertyInspector.xaml.cs">
       <DependentUpon>PropertyInspector.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SnoopUI.xaml.cs">
+    <Compile Include="Views\SnoopUI.xaml.cs">
       <DependentUpon>SnoopUI.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VisualTreeHelperEx.cs" />
-    <Compile Include="VisualTreeItem.cs" />
+    <Compile Include="VisualTree\VisualTreeItem.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WindowFinder.xaml.cs">
+    <Compile Include="Views\WindowFinder.xaml.cs">
       <DependentUpon>WindowFinder.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Zoomer.xaml.cs">
+    <Compile Include="Views\Zoomer.xaml.cs">
       <DependentUpon>Zoomer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Previewer.xaml.cs">
+    <Compile Include="Views\Previewer.xaml.cs">
       <DependentUpon>Previewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="VisualTree3DView.cs" />
@@ -383,9 +372,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="..\..\assets\SnoopX.ico">
-      <Link>SnoopX.ico</Link>
+      <Link>Resources\SnoopX.ico</Link>
     </Resource>
   </ItemGroup>
+  <ItemGroup />
   <ProjectExtensions>
     <InteractiveDesigner>
       <ProjectExtensions>

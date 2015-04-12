@@ -5,6 +5,7 @@
 // All other rights reserved.
 
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 
@@ -14,12 +15,11 @@ namespace Snoop
 	{
 		private string _filterString;
 		private Regex _filterRegex;
-		private bool _showDefaults;
 
-		public PropertyFilter(string filterString, bool showDefaults)
+	    public PropertyFilter(string filterString, bool showDefaults)
 		{
 			_filterString = filterString.ToLower();
-			_showDefaults = showDefaults;
+			ShowDefaults = showDefaults;
 		}
 
 		public string FilterString
@@ -27,7 +27,7 @@ namespace Snoop
 			get { return _filterString; }
 			set
 			{
-				_filterString = value.ToLower();
+			    _filterString = value.ToLower();
 				try
 				{
 					_filterRegex = new Regex(_filterString, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
@@ -39,13 +39,9 @@ namespace Snoop
 			}
 		}
 
-		public bool ShowDefaults
-		{
-			get { return _showDefaults; }
-			set { _showDefaults = value; }
-		}
+		public bool ShowDefaults { get; set; }
 
-		public PropertyFilterSet SelectedFilterSet { get; set; }
+	    public PropertyFilterSet SelectedFilterSet { get; set; }
 
 		public bool IsPropertyFilterSet
 		{
@@ -94,41 +90,17 @@ namespace Snoop
 	[Serializable]
 	public class PropertyFilterSet
 	{
-		public string DisplayName
-		{
-			get;
-			set;
-		}
+		public string DisplayName { get; set; }
 
-		public bool IsDefault
-		{
-			get;
-			set;
-		}
+		public bool IsDefault { get; set; }
 
-		public bool IsEditCommand
-		{
-			get;
-			set;
-		}
+		public bool IsEditCommand { get; set; }
 
-		public string[] Properties
-		{
-			get;
-			set;
-		}
+		public string[] Properties { get; set; }
 
 		public bool IsPropertyInFilter(string property)
 		{
-			string lowerProperty = property.ToLower();
-			foreach (var filterProp in Properties)
-			{
-				if (lowerProperty.StartsWith(filterProp))
-				{
-					return true;
-				}
-			}
-			return false;
+		    return Properties.Any(filterProp => property.StartsWith(filterProp, StringComparison.OrdinalIgnoreCase));
 		}
 	}
 }

@@ -47,7 +47,7 @@ namespace Snoop.DebugListenerTab
             _allText.Append(str + Environment.NewLine);
 			if (!_filtersViewModel.IsSet || _filtersViewModel.FilterMatches(str))
 			{
-				Dispatcher.BeginInvoke(DispatcherPriority.Render, () => DoWrite(str));
+                Dispatcher.InvokeAsync(() => DoWrite(str), DispatcherPriority.Render);
 			}
 		}
 

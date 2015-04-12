@@ -15,17 +15,13 @@ namespace Snoop.DebugListenerTab
 
 		public FilterType FilterType { get; set; }
 
-
 		public string Text
 		{
-			get
-			{
-				return _text;
-			}
+			get { return _text; }
 			set
 			{
 				_text = value;
-				RaisePropertyChanged("Text");
+				RaisePropertyChanged();
 			}
 		}
 
@@ -62,7 +58,7 @@ namespace Snoop.DebugListenerTab
 		{
 			try
 			{
-				return Regex.IsMatch(input, pattern);
+			    return Regex.IsMatch(input, pattern);
 			}
 			catch (Exception)
 			{
@@ -79,11 +75,11 @@ namespace Snoop.DebugListenerTab
 	    {
 	        var newFilter = new SnoopSingleFilter
 	        {
-	            _groupId = _groupId,
-	            _isGrouped = _isGrouped,
-	            _text = _text,
+	            GroupId = GroupId,
+	            IsGrouped = IsGrouped,
+	            Text = _text,
 	            FilterType = FilterType,
-	            _isInverse = _isInverse
+	            IsInverse = IsInverse
 	        };
 	        return newFilter;
 	    }

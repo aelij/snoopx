@@ -11,6 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using Snoop.Utilities;
+using Snoop.Views;
+using Snoop.VisualTree;
 
 namespace Snoop
 {
@@ -36,7 +39,7 @@ namespace Snoop
 
             if (_snoopUi == null)
             {
-                _snoopUi = VisualTreeHelperEx.GetAncestor<SnoopUI>(this);
+                _snoopUi = this.GetAncestor<SnoopUI>();
                 if (_snoopUi == null)
                 {
                     return false;
@@ -83,6 +86,7 @@ namespace Snoop
             Debug.Assert(ReferenceEquals(_pendingRoot, sender), "_pendingRoot == sender");
             OnRootLoaded();
         }
+
         private void OnRootLoaded()
         {
             // The following assumptions are made:
@@ -94,18 +98,16 @@ namespace Snoop
             root.Loaded -= OnRootLoaded;
 
             ItemsPresenter itemsPresenter = null;
-            VisualTreeHelperEx.EnumerateTree(root, null,
-                delegate(Visual visual, object misc)
+            root.EnumerateTree(null, delegate(Visual visual, object misc)
+            {
+                itemsPresenter = visual as ItemsPresenter;
+                if (itemsPresenter != null && ReferenceEquals(itemsPresenter.TemplatedParent, root))
                 {
-                    itemsPresenter = visual as ItemsPresenter;
-                    if (itemsPresenter != null && ReferenceEquals(itemsPresenter.TemplatedParent, root))
-                    {
-                        return HitTestResultBehavior.Stop;
-                    }
-                    itemsPresenter = null;
-                    return HitTestResultBehavior.Continue;
-                },
-                null);
+                    return HitTestResultBehavior.Stop;
+                }
+                itemsPresenter = null;
+                return HitTestResultBehavior.Continue;
+            }, null);
 
             if (itemsPresenter != null)
             {
@@ -137,6 +139,11 @@ namespace Snoop
 
     public class ProperTreeViewItem : TreeViewItem
     {
+        static ProperTreeViewItem()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ProperTreeViewItem), new FrameworkPropertyMetadata(typeof(ProperTreeViewItem)));
+        }
+
         public ProperTreeViewItem(WeakReference treeView)
         {
             _treeView = treeView;
@@ -147,6 +154,7 @@ namespace Snoop
             get { return (double)GetValue(IndentProperty); }
             set { SetValue(IndentProperty, value); }
         }
+
         public static readonly DependencyProperty IndentProperty =
             DependencyProperty.Register
             (
@@ -185,6 +193,7 @@ namespace Snoop
             }
             return new Size(0, 0);
         }
+
         protected override Size ArrangeOverride(Size arrangeBounds)
         {
             // Check whether the tree is too deep.
@@ -212,6 +221,7 @@ namespace Snoop
         {
             return new Thickness((double)value, 0, 0, 0);
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return null;
