@@ -31,7 +31,6 @@ namespace Snoop.Controls
         public static readonly RoutedCommand DelveBindingExpressionCommand = new RoutedCommand();
 
         private readonly DelayedCall _filterCall;
-        private readonly DispatcherTimer _filterTimer;
         private readonly ObservableCollection<PropertyInformation> _properties;
         private readonly ObservableCollection<PropertyInformation> _allProperties;
 
@@ -54,14 +53,6 @@ namespace Snoop.Controls
             CommandBindings.Add(new CommandBinding(ShowBindingErrorsCommand, HandleShowBindingErrors, CanShowBindingErrors));
             CommandBindings.Add(new CommandBinding(ClearCommand, HandleClear, CanClear));
             CommandBindings.Add(new CommandBinding(SortCommand, HandleSort));
-
-
-            _filterTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.3) };
-            _filterTimer.Tick += (s, e) =>
-            {
-                _filterCall.Enqueue();
-                _filterTimer.Stop();
-            };
         }
 
         public bool NameValueOnly
@@ -150,8 +141,7 @@ namespace Snoop.Controls
 
         protected virtual void OnFilterChanged()
         {
-            _filterTimer.Stop();
-            _filterTimer.Start();
+            _filterCall.Enqueue();
         }
 
         /// <summary>
@@ -200,7 +190,6 @@ namespace Snoop.Controls
             get { return _filter; }
             set
             {
-                if (Equals(value, _filter)) return;
                 _filter = value;
                 OnPropertyChanged();
                 OnFilterChanged();

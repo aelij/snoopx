@@ -145,7 +145,7 @@ All other rights reserved.
         </Button>
 
         <!-- Visual Tree TreeView -->
-        <local:ProperTreeView x:Name="Tree"
+        <controls:ProperTreeView x:Name="Tree"
                               Grid.Row="1"
                               Grid.RowSpan="2"
                               Grid.Column="0"
@@ -170,7 +170,7 @@ All other rights reserved.
             </TreeView.Resources>
 
             <TreeView.ItemContainerStyle>
-                <Style TargetType="{x:Type local:ProperTreeViewItem}"
+                <Style TargetType="{x:Type controls:ProperTreeViewItem}"
                        d:DataContext="{d:DesignInstance visualTree:VisualItem}">
                     <Setter Property="IsSelected"
                             Value="{Binding IsSelected, Mode=TwoWay}" />
@@ -205,11 +205,11 @@ All other rights reserved.
                 </Style>
             </TreeView.ItemContainerStyle>
 
-            <local:ProperTreeView.ToolTip>
+            <controls:ProperTreeView.ToolTip>
                 <TextBlock Style="{x:Null}"
                            Text="Hold down Ctrl-Shift and mouse over elements in the target app to select them." />
-            </local:ProperTreeView.ToolTip>
-        </local:ProperTreeView>
+            </controls:ProperTreeView.ToolTip>
+        </controls:ProperTreeView>
 
         <!-- Vertical GridSplitter (between the visual tree tree view and the tab control (with the property grid/events view)) -->
         <GridSplitter x:Name="GridSplitter"

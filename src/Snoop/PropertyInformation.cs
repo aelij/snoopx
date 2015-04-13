@@ -7,7 +7,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -21,13 +20,12 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Snoop.Annotations;
 using Snoop.Infrastructure;
+using Snoop.Utilities;
 
 namespace Snoop
 {
     public class PropertyInformation : DependencyObject, IComparable, INotifyPropertyChanged
     {
-        private static readonly IReadOnlyList<PropertyInformation> _childrenEmptySentinel = new ReadOnlyCollection<PropertyInformation>(new PropertyInformation[0]);
-
         private readonly object _target;
         private readonly object _component;
         private readonly bool _isCopyable;
@@ -43,7 +41,6 @@ namespace Snoop
         private bool _breakOnChange;
         private ValueSource _valueSource;
         private bool _changedRecently;
-        private IReadOnlyList<PropertyInformation> _children;
 
         /// <summary>
         /// Normal constructor used when constructing PropertyInformation objects for properties.
@@ -58,15 +55,6 @@ namespace Snoop
             _property = property;
             _displayName = propertyDisplayName;
             CollectionIndex = -1;
-
-            if (target != null)
-            {
-                var type = target.GetType();
-                if (!type.IsPrimitive && type != typeof(string))
-                {
-                    _children = _childrenEmptySentinel;
-                }
-            }
 
             if (property != null)
             {
@@ -624,7 +612,7 @@ namespace Snoop
 
         public static List<PropertyInformation> GetProperties(object obj)
         {
-            return GetProperties(obj, new PertinentPropertyFilter(obj).Filter);
+            return GetProperties(obj, descriptor => PertinentPropertyFilter.IsRelevantProperty(obj, descriptor));
         }
 
         public static List<PropertyInformation> GetProperties(object obj, Predicate<PropertyDescriptor> filter)
@@ -771,25 +759,6 @@ namespace Snoop
         }
 
         #endregion
-
-        public IReadOnlyList<PropertyInformation> Children
-        {
-            get
-            {
-                if (ReferenceEquals(_children, _childrenEmptySentinel))
-                {
-                    _children = null;
-
-                }
-                return _children;
-            }
-            private set
-            {
-                if (Equals(value, _children)) return;
-                _children = value;
-                OnPropertyChanged();
-            }
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

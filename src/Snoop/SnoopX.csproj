@@ -195,7 +195,7 @@
     <Compile Include="DebugListenerTab\SnoopFilter.cs" />
     <Compile Include="DebugListenerTab\SnoopMultipleFilter.cs" />
     <Compile Include="DebugListenerTab\SnoopSingleFilter.cs" />
-    <Compile Include="EditedPropertiesHelper.cs" />
+    <Compile Include="Utilities\EditedPropertiesHelper.cs" />
     <Compile Include="Utilities\VisualTreeHelperEx.cs" />
     <Compile Include="Views\EditUserFilters.xaml.cs">
       <DependentUpon>EditUserFilters.xaml</DependentUpon>
@@ -234,10 +234,9 @@
     </Compile>
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Converters\ObjectToStringConverter.cs" />
-    <Compile Include="PertinentPropertyFilter.cs" />
+    <Compile Include="Utilities\PertinentPropertyFilter.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyValueInfo.cs" />
     <Compile Include="Utilities\DelayedCall.cs" />
     <Compile Include="Utilities\SnoopWindowUtils.cs" />
     <Compile Include="Utilities\VisualCaptureUtil.cs" />
@@ -297,7 +296,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="ProperTreeView.cs" />
+    <Compile Include="Controls\ProperTreeView.cs" />
     <Compile Include="PropertyFilter.cs" />
     <Compile Include="PropertyInformation.cs" />
     <Compile Include="VisualTree\ResourceContainerItem.cs" />
@@ -343,7 +342,7 @@
     <Compile Include="Views\Previewer.xaml.cs">
       <DependentUpon>Previewer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VisualTree3DView.cs" />
+    <Compile Include="Controls\VisualTree3DView.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

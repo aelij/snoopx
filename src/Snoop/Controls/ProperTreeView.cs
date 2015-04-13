@@ -15,7 +15,7 @@ using Snoop.Utilities;
 using Snoop.Views;
 using Snoop.VisualTree;
 
-namespace Snoop
+namespace Snoop.Controls
 {
     public class ProperTreeView : TreeView
     {

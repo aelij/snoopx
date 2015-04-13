@@ -14,7 +14,6 @@ using Microsoft.Win32.SafeHandles;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable FieldCanBeMadeReadOnly.Local
-
 namespace Snoop
 {
 	public static class NativeMethods

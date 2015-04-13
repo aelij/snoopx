@@ -7,20 +7,14 @@
 using System.ComponentModel;
 using System.Windows;
 
-namespace Snoop
+namespace Snoop.Utilities
 {
-	public class PertinentPropertyFilter
+	public static class PertinentPropertyFilter
 	{
-        private readonly FrameworkElement _element;
-
-		public PertinentPropertyFilter(object target)
+		public static bool IsRelevantProperty(object o, PropertyDescriptor property)
 		{
-			_element = target as FrameworkElement;
-		}
-
-		public bool Filter(PropertyDescriptor property)
-		{
-		    if (_element == null)
+		    var element = o as FrameworkElement;
+		    if (element == null)
 		    {
 		        return true;
 		    }
@@ -43,7 +37,7 @@ namespace Snoop
 			        return false;
 			    }
 
-				var localElement = _element;
+				var localElement = element;
 				do
 				{
 					localElement = localElement.Parent as FrameworkElement;
@@ -61,7 +55,7 @@ namespace Snoop
 		        if (attachedPropertyForType.TargetType.IsSubclassOf(typeof(DependencyObject)))
 		        {
 		            DependencyObjectType doType = DependencyObjectType.FromSystemType(attachedPropertyForType.TargetType);
-		            if (doType.IsInstanceOfType(_element))
+		            if (doType.IsInstanceOfType(element))
 		            {
 		                return true;
 		            }
@@ -74,7 +68,7 @@ namespace Snoop
 		        return true;
 		    }
 
-		    var dependentAttribute = TypeDescriptor.GetAttributes(_element)[attachedPropertyForAttribute.AttributeType];
+		    var dependentAttribute = TypeDescriptor.GetAttributes(element)[attachedPropertyForAttribute.AttributeType];
 		    return dependentAttribute != null && !dependentAttribute.IsDefaultAttribute();
 		}
 	}

@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Snoop.VisualTree;
 
-namespace Snoop
+namespace Snoop.Utilities
 {
     public class EditedPropertiesHelper
     {

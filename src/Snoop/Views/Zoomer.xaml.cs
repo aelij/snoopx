@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Snoop.Controls;
 using Snoop.Infrastructure;
 using Snoop.Properties;
 using Snoop.Utilities;
