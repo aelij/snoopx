@@ -48,13 +48,20 @@ namespace Snoop.Utilities
             int processId;
             NativeMethods.GetWindowThreadProcessId(_hwnd, out processId);
 
+            return GetModulesByProcessId(processId);
+        }
+
+        public static IEnumerable<NativeMethods.MODULEENTRY32> GetModulesByProcessId(int processId)
+        {
             var me32 = new NativeMethods.MODULEENTRY32();
-            var hModuleSnap = NativeMethods.CreateToolhelp32Snapshot(NativeMethods.SnapshotFlags.Module | NativeMethods.SnapshotFlags.Module32, processId);
+            var hModuleSnap =
+                NativeMethods.CreateToolhelp32Snapshot(
+                    NativeMethods.SnapshotFlags.Module | NativeMethods.SnapshotFlags.Module32, processId);
             if (!hModuleSnap.IsInvalid)
             {
                 using (hModuleSnap)
                 {
-                    me32.dwSize = (uint)Marshal.SizeOf(me32);
+                    me32.dwSize = (uint) Marshal.SizeOf(me32);
                     if (NativeMethods.Module32First(hModuleSnap, ref me32))
                     {
                         do
@@ -150,7 +157,7 @@ namespace Snoop.Utilities
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                Injector.Launch(HWnd, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
+                Injector.Launch(OwningProcess.Id, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
             }
             catch (Exception e)
             {
@@ -164,7 +171,7 @@ namespace Snoop.Utilities
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                Injector.Launch(HWnd, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
+                Injector.Launch(OwningProcess.Id, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
             }
             catch (Exception e)
             {

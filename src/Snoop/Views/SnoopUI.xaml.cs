@@ -96,13 +96,6 @@ namespace Snoop.Views
             // we can't catch the mouse wheel at the ZoomerControl level,
             // so we catch it here, and relay it to the ZoomerControl.
             MouseWheel += SnoopUI_MouseWheel;
-
-            _filterTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.3) };
-            _filterTimer.Tick += (s, e) =>
-            {
-                EnqueueAfterSettingFilter();
-                _filterTimer.Stop();
-            };
         }
 
         #endregion
@@ -309,16 +302,8 @@ namespace Snoop.Views
             set
             {
                 _filter = value;
-
-                if (!_fromTextBox)
-                {
-                    EnqueueAfterSettingFilter();
-                }
-                else
-                {
-                    _filterTimer.Stop();
-                    _filterTimer.Start();
-                }
+                OnPropertyChanged();
+                _filterCall.Enqueue();
             }
         }
 
@@ -327,13 +312,6 @@ namespace Snoop.Views
             _fromTextBox = false;
             Filter = value;
             _fromTextBox = true;
-        }
-
-        private void EnqueueAfterSettingFilter()
-        {
-            _filterCall.Enqueue();
-
-            OnPropertyChanged("Filter");
         }
 
         private string _filter = string.Empty;
@@ -902,7 +880,6 @@ namespace Snoop.Views
 
         #region Private Fields
         private bool _fromTextBox = true;
-        private readonly DispatcherTimer _filterTimer;
 
         private readonly ObservableCollection<VisualTreeItem> _visualTreeItems = new ObservableCollection<VisualTreeItem>();
 

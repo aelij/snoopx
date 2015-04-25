@@ -13,14 +13,12 @@ namespace Snoop.Utilities
 {
 	internal static class Injector
 	{
-		private static string Suffix(IntPtr windowHandle)
+		private static string Suffix(int processId)
 		{
-			var window = new WindowInfo(windowHandle);
 			string bitness = IntPtr.Size == 8 ? "64" : "32";
 			string clr = "3.5";
 
-
-			foreach (var module in window.Modules)
+			foreach (var module in WindowInfo.GetModulesByProcessId(processId))
 			{
 				// a process is valid to snoop if it contains a dependency on PresentationFramework, PresentationCore, or milcore (wpfgfx).
 				// this includes the files:
@@ -39,8 +37,8 @@ namespace Snoop.Utilities
 				if
 				(
 					module.szModule.StartsWith("PresentationFramework", StringComparison.OrdinalIgnoreCase) ||
-					module.szModule.StartsWith("PresentationCore", StringComparison.OrdinalIgnoreCase) ||
-					module.szModule.StartsWith("wpfgfx", StringComparison.OrdinalIgnoreCase)
+                    module.szModule.StartsWith("PresentationCore", StringComparison.OrdinalIgnoreCase) ||
+                    module.szModule.StartsWith("wpfgfx", StringComparison.OrdinalIgnoreCase)
 				)
 				{
 					if (FileVersionInfo.GetVersionInfo(module.szExePath).FileMajorPart > 3)
@@ -48,7 +46,7 @@ namespace Snoop.Utilities
 						clr = "4.0";
 					}
 				}
-				if (module.szModule.Contains("wow64.dll"))
+                if (module.szModule.Contains("wow64.dll"))
 				{
 					if (FileVersionInfo.GetVersionInfo(module.szExePath).FileMajorPart > 3)
 					{
@@ -59,14 +57,14 @@ namespace Snoop.Utilities
 			return bitness + "-" + clr;
 		}
 
-		internal static void Launch(IntPtr windowHandle, Assembly assembly, string className, string methodName)
+		internal static void Launch(int processId, Assembly assembly, string className, string methodName)
 		{
 			var location = Assembly.GetEntryAssembly().Location;
 			var directory = Path.GetDirectoryName(location);
 		    // ReSharper disable once AssignNullToNotNullAttribute
-			var file = Path.Combine(directory, "ManagedInjectorLauncher" + Suffix(windowHandle) + ".exe");
+            var file = Path.Combine(directory, "ManagedInjectorLauncher" + Suffix(processId) + ".exe");
 
-			Process.Start(file, windowHandle + " \"" + assembly.Location + "\" \"" + className + "\" \"" + methodName + "\"");
+			Process.Start(file, processId + " \"" + assembly.Location + "\" \"" + className + "\" \"" + methodName + "\"");
 		}
 	}
 }

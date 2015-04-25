@@ -1,3 +1,4 @@
+// (c) 2015 Eli Arbel
 // (c) Copyright Cory Plotts.
 // This source is subject to the Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -5,19 +6,18 @@
 
 #pragma once
 
-__declspec(dllexport)
-LRESULT __stdcall MessageHookProc(int nCode, WPARAM wparam, LPARAM lparam);
-
 using namespace System;
+
+__declspec(dllexport)
+DWORD __stdcall ThreadStart(void* param);
 
 namespace ManagedInjector
 {
-	public ref class Injector : System::Object
+	public ref class Injector sealed : Object
 	{
-		public:
-
-		static void Launch(System::IntPtr windowHandle, System::String^ assemblyName, System::String^ className, System::String^ methodName);
-
-		static void LogMessage(System::String^ message, bool append);
+	public:
+		static void Initialize();
+		static void Launch(Int32 processId, String^ assemblyName, String^ className, String^ methodName);
+		static void LogMessage(String^ message);
 	};
 }
