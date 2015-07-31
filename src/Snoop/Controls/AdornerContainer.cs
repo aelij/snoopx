@@ -19,12 +19,9 @@ namespace Snoop.Controls
 		{
 		}
 
-		protected override int VisualChildrenCount
-		{
-			get { return _child == null ? 0 : 1; }
-		}
+		protected override int VisualChildrenCount => _child == null ? 0 : 1;
 
-		protected override Visual GetVisualChild(int index)
+	    protected override Visual GetVisualChild(int index)
 		{
 			if (index == 0 && _child != null)
 				return _child;
@@ -33,9 +30,8 @@ namespace Snoop.Controls
 
 		protected override Size ArrangeOverride(Size finalSize)
 		{
-			if (_child != null)
-				_child.Arrange(new Rect(finalSize));
-			return finalSize;
+		    _child?.Arrange(new Rect(finalSize));
+		    return finalSize;
 		}
 
 		public UIElement Child

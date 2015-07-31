@@ -145,7 +145,7 @@ namespace Snoop
 
 		public static IntPtr GetWindowUnderMouse()
 		{
-			WindowPoint pt = new WindowPoint();
+			var pt = new WindowPoint();
 			if (GetCursorPos(ref pt))
 			{
 				return WindowFromPoint(pt);

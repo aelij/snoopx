@@ -21,12 +21,9 @@ namespace Snoop.DebugListenerTab
 
 	    public abstract bool FilterMatches(string debugLine);
 
-		public virtual bool SupportsGrouping
-		{
-			get { return true; }
-		}
+		public virtual bool SupportsGrouping => true;
 
-		public bool IsInverse
+	    public bool IsInverse
 		{
 			get { return _isInverse; }
 			set
@@ -35,20 +32,14 @@ namespace Snoop.DebugListenerTab
 				{
 					_isInverse = value;
 					RaisePropertyChanged();
-					RaisePropertyChanged("IsInverseText");
+					RaisePropertyChanged(nameof(IsInverseText));
 				}
 			}
 		}
 
-		public string IsInverseText
-		{
-			get
-			{
-				return _isInverse ? "NOT" : string.Empty;
-			}
-		}
+		public string IsInverseText => _isInverse ? "NOT" : string.Empty;
 
-		public bool IsGrouped
+	    public bool IsGrouped
 		{
 			get { return _isGrouped; }
 			set
@@ -76,8 +67,7 @@ namespace Snoop.DebugListenerTab
 		{
 			IsDirty = true;
 			var handler = PropertyChanged;
-			if (handler != null)
-				handler(this, new PropertyChangedEventArgs(propertyName));
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

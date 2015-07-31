@@ -48,7 +48,14 @@ String^ GetLogPath()
 
 void Injector::Initialize()
 {
-	File::Delete(GetLogPath());
+	try
+	{
+		File::Delete(GetLogPath());
+	}
+	catch (const FileNotFoundException^)
+	{
+		// ignored
+	}
 }
 
 void LogMessage(String^ message)
@@ -120,6 +127,8 @@ __declspec(dllexport)
 DWORD __stdcall ThreadStart(void* param)
 {
 	LogMessage("Thread started");
+
+	CoInitialize(NULL);
 
 	String^ acmLocal = gcnew String((wchar_t *)param);
 

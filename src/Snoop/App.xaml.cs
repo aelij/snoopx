@@ -12,7 +12,7 @@ namespace Snoop
 	/// <summary>
 	/// Interaction logic for App.xaml
 	/// </summary>
-	public partial class App : Application
+	public partial class App
 	{
 		private void Application_Exit(object sender, ExitEventArgs e)
 		{

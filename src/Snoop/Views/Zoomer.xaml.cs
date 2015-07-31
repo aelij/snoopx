@@ -102,7 +102,7 @@ namespace Snoop.Views
 
         public void Magnify()
         {
-            object root = FindRoot();
+            var root = FindRoot();
             if (root == null)
             {
                 MessageBox.Show
@@ -121,7 +121,7 @@ namespace Snoop.Views
         {
             Target = root;
 
-            Window ownerWindow = SnoopWindowUtils.FindOwnerWindow();
+            var ownerWindow = SnoopWindowUtils.FindOwnerWindow();
             if (ownerWindow != null)
                 Owner = ownerWindow;
 
@@ -137,7 +137,7 @@ namespace Snoop.Views
             set
             {
                 _target = value;
-                UIElement element = CreateIfPossible(value);
+                var element = CreateIfPossible(value);
                 if (element != null)
                     Viewbox.Child = element;
             }
@@ -150,11 +150,11 @@ namespace Snoop.Views
             try
             {
                 // load the window placement details from the user settings.
-                WindowPlacement wp = Settings.Default.ZoomerWindowPlacement;
+                var wp = Settings.Default.ZoomerWindowPlacement;
                 wp.Length = Marshal.SizeOf(typeof(WindowPlacement));
                 wp.Flags = 0;
                 wp.WindowState = (wp.WindowState == NativeMethods.SW_SHOWMINIMIZED ? NativeMethods.SW_SHOWNORMAL : wp.WindowState);
-                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                var hwnd = new WindowInteropHelper(this).Handle;
                 NativeMethods.SetWindowPlacement(hwnd, ref wp);
             }
             catch
@@ -171,7 +171,7 @@ namespace Snoop.Views
 
             // persist the window placement details to the user settings.
             WindowPlacement wp;
-            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+            var hwnd = new WindowInteropHelper(this).Handle;
             NativeMethods.GetWindowPlacement(hwnd, out wp);
             Settings.Default.ZoomerWindowPlacement = wp;
             Settings.Default.Save();
@@ -203,13 +203,13 @@ namespace Snoop.Views
 
         private void HandleZoomIn(object target, ExecutedRoutedEventArgs args)
         {
-            Point offset = Mouse.GetPosition(Viewbox);
+            var offset = Mouse.GetPosition(Viewbox);
             Zoom(ZoomFactor, offset);
         }
 
         private void HandleZoomOut(object target, ExecutedRoutedEventArgs args)
         {
-            Point offset = Mouse.GetPosition(Viewbox);
+            var offset = Mouse.GetPosition(Viewbox);
             Zoom(1 / ZoomFactor, offset);
         }
 
@@ -245,7 +245,7 @@ namespace Snoop.Views
 
         private void HandleSwitchTo3D(object target, ExecutedRoutedEventArgs args)
         {
-            Visual visual = _target as Visual;
+            var visual = _target as Visual;
             if (_visualTree3DView == null && visual != null)
             {
                 try
@@ -278,7 +278,7 @@ namespace Snoop.Views
         {
             if (DocumentRoot.IsMouseCaptured)
             {
-                Vector delta = e.GetPosition(DocumentRoot) - _downPoint;
+                var delta = e.GetPosition(DocumentRoot) - _downPoint;
                 _translation.X += delta.X;
                 _translation.Y += delta.Y;
 
@@ -293,8 +293,8 @@ namespace Snoop.Views
 
         private void Content_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            double zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
-            Point offset = e.GetPosition(Viewbox);
+            var zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
+            var offset = e.GetPosition(Viewbox);
             Zoom(zoom, offset);
         }
 
@@ -313,9 +313,9 @@ namespace Snoop.Views
 
         private void Zoom(double zoom, Point offset)
         {
-            Vector v = new Vector((1 - zoom) * offset.X, (1 - zoom) * offset.Y);
+            var v = new Vector((1 - zoom) * offset.X, (1 - zoom) * offset.Y);
 
-            Vector translationVector = v * _transform.Value;
+            var translationVector = v * _transform.Value;
             _translation.X += translationVector.X;
             _translation.Y += translationVector.Y;
 
@@ -394,7 +394,7 @@ namespace Snoop.Views
             // if the root is a window, let's magnify the window's content.
             // this is better, as otherwise, you will have window background along with the window's content.
             var windowRoot = root as Window;
-            if (windowRoot != null && windowRoot.Content != null)
+            if (windowRoot?.Content != null)
             {
                 root = windowRoot.Content;
             }
@@ -407,8 +407,8 @@ namespace Snoop.Views
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            float val = (float)(double)value;
-            Color c = new Color { ScR = val, ScG = val, ScB = val, ScA = 1 };
+            var val = (float)(double)value;
+            var c = new Color { ScR = val, ScG = val, ScB = val, ScA = 1 };
 
             return new SolidColorBrush(c);
         }

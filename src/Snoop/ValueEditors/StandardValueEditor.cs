@@ -40,7 +40,7 @@ namespace Snoop
 				PropertyInfo.IsValueChangedByUser = true;
 			}
 
-			Type targetType = PropertyType;
+			var targetType = PropertyType;
 
 			if (targetType.IsAssignableFrom(typeof(string)))
 			{
@@ -48,17 +48,15 @@ namespace Snoop
 			}
 			else
 			{
-				TypeConverter converter = TypeDescriptor.GetConverter(targetType);
-				if (converter != null)
-				{
-					try
-					{
-						SetValueFromConverter(newValue, targetType, converter);
-					}
-					catch (Exception)
-					{
-					}
-				}
+				var converter = TypeDescriptor.GetConverter(targetType);
+			    try
+			    {
+			        SetValueFromConverter(newValue, targetType, converter);
+			    }
+			    catch (Exception)
+			    {
+			        // ignored
+			    }
 			}
 		}
 
@@ -79,17 +77,13 @@ namespace Snoop
 		{
 			_isUpdatingValue = true;
 
-			object value = Value;
-			if (value != null)
-				StringValue = value.ToString();
-			else
-				StringValue = string.Empty;
+			var value = Value;
+			StringValue = value?.ToString() ?? string.Empty;
 
 			_isUpdatingValue = false;
 
-			BindingExpression binding = BindingOperations.GetBindingExpression(this, StringValueProperty);
-			if (binding != null)
-				binding.UpdateSource();
+			var binding = BindingOperations.GetBindingExpression(this, StringValueProperty);
+		    binding?.UpdateSource();
 		}
 
 

@@ -14,242 +14,224 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using Snoop.Annotations;
+using Application = System.Windows.Application;
 
 namespace Snoop.VisualTree
 {
-	public class VisualTreeItem : INotifyPropertyChanged
-	{
-	    [SuppressMessage("ReSharper", "CanBeReplacedWithTryCastAndCheckForNull")]
-	    public static VisualTreeItem Construct(object target, VisualTreeItem parent)
-		{
-			VisualTreeItem visualTreeItem;
+    public class VisualTreeItem : INotifyPropertyChanged
+    {
+        [SuppressMessage("ReSharper", "CanBeReplacedWithTryCastAndCheckForNull")]
+        public static VisualTreeItem Construct(object target, VisualTreeItem parent)
+        {
+            VisualTreeItem visualTreeItem;
 
-			if (target is Visual)
-				visualTreeItem = new VisualItem((Visual)target, parent);
-			else if (target is ResourceDictionary)
-				visualTreeItem = new ResourceDictionaryItem((ResourceDictionary)target, parent);
-			else if (target is Application)
-				visualTreeItem = new ApplicationTreeItem((Application)target, parent);
-			else
-				visualTreeItem = new VisualTreeItem(target, parent);
+            if (target is Visual)
+                visualTreeItem = new VisualItem((Visual)target, parent);
+            else if (target is ResourceDictionary)
+                visualTreeItem = new ResourceDictionaryItem((ResourceDictionary)target, parent);
+            else if (target is Application)
+                visualTreeItem = new ApplicationTreeItem((Application)target, parent);
+            else if (target is System.Windows.Forms.Control)
+                visualTreeItem = new FormsTreeItem((System.Windows.Forms.Control)target, parent);
+            else
+                visualTreeItem = new VisualTreeItem(target, parent);
 
-			visualTreeItem.Reload();
+            visualTreeItem.Reload();
 
-			return visualTreeItem;
-		}
-		protected VisualTreeItem(object target, VisualTreeItem parent)
-		{
-		    if (target == null) throw new ArgumentNullException("target");
-		    Target = target;
-			_parent = parent;
-			if (parent != null)
-				_depth = parent._depth + 1;
-		}
-
-
-		public override string ToString()
-		{
-			StringBuilder sb = new StringBuilder(50);
-
-			// [depth] name (type) numberOfChildren
-			sb.AppendFormat("[{0}] {1} ({2})", _depth.ToString("D3"), _name, Target.GetType().Name);
-			if (_visualChildrenCount != 0)
-			{
-				sb.Append(' ');
-				sb.Append(_visualChildrenCount.ToString());
-			}
-
-			return sb.ToString();
-		}
+            return visualTreeItem;
+        }
+        protected VisualTreeItem(object target, VisualTreeItem parent)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            Target = target;
+            Parent = parent;
+            if (parent != null)
+                Depth = parent.Depth + 1;
+        }
 
 
-		/// <summary>
-		/// The WPF object that this VisualTreeItem is wrapping
-		/// </summary>
-		public object Target { get; private set; }
+        public override string ToString()
+        {
+            var sb = new StringBuilder(50);
 
-	    /// <summary>
-		/// The VisualTreeItem parent of this VisualTreeItem
-		/// </summary>
-		public VisualTreeItem Parent
-		{
-			get { return _parent; }
-		}
-		private readonly VisualTreeItem _parent;
+            // [depth] name (type) numberOfChildren
+            sb.AppendFormat("[{0}] {1} ({2})", Depth.ToString("D3"), _name, Target.GetType().Name);
+            if (_visualChildrenCount != 0)
+            {
+                sb.Append(' ');
+                sb.Append(_visualChildrenCount.ToString());
+            }
 
-		/// <summary>
-		/// The depth (in the visual tree) of this VisualTreeItem
-		/// </summary>
-		public int Depth
-		{
-			get { return _depth; }
-		}
-		private readonly int _depth;
-
-		/// <summary>
-		/// The VisualTreeItem children of this VisualTreeItem
-		/// </summary>
-		public ObservableCollection<VisualTreeItem> Children
-		{
-			get { return _children; }
-		}
-		private readonly ObservableCollection<VisualTreeItem> _children = new ObservableCollection<VisualTreeItem>();
+            return sb.ToString();
+        }
 
 
-		public bool IsSelected
-		{
-			get { return _isSelected; }
-			set
-			{
-				if (_isSelected != value)
-				{
-					_isSelected = value;
+        /// <summary>
+        /// The WPF object that this VisualTreeItem is wrapping
+        /// </summary>
+        public object Target { get; }
 
-					// Need to expand all ancestors so this will be visible in the tree.
-					if (_isSelected && _parent != null)
-						_parent.ExpandTo();
+        /// <summary>
+        /// The VisualTreeItem parent of this VisualTreeItem
+        /// </summary>
+        public VisualTreeItem Parent { get; }
 
-					OnPropertyChanged("IsSelected");
-					OnSelectionChanged();
-				}
-			}
-		}
-		protected virtual void OnSelectionChanged()
-		{
-		}
-		private bool _isSelected;
+        /// <summary>
+        /// The depth (in the visual tree) of this VisualTreeItem
+        /// </summary>
+        public int Depth { get; }
 
-		/// <summary>
-		/// Need this to databind to TreeView so we can display to hidden items.
-		/// </summary>
-		public bool IsExpanded
-		{
-			get { return _isExpanded; }
-			set
-			{
-				if (_isExpanded != value)
-				{
-					_isExpanded = value;
-					OnPropertyChanged("IsExpanded");
-				}
-			}
-		}
-		/// <summary>
-		/// Expand this element and all elements leading to it.
-		/// Used to show this element in the tree view.
-		/// </summary>
-		private void ExpandTo()
-		{
-			if (_parent != null)
-				_parent.ExpandTo();
-
-			IsExpanded = true;
-		}
-		private bool _isExpanded;
+        /// <summary>
+        /// The VisualTreeItem children of this VisualTreeItem
+        /// </summary>
+        public ObservableCollection<VisualTreeItem> Children { get; } = new ObservableCollection<VisualTreeItem>();
 
 
-		public virtual Visual MainVisual
-		{
-			get { return null; }
-		}
-		public virtual Brush TreeBackgroundBrush
-		{
-			get { return new SolidColorBrush(Color.FromArgb(255, 240, 240, 240)); }
-		}
-		public virtual Brush VisualBrush
-		{
-			get { return null; }
-		}
-		/// <summary>
-		/// Checks to see if any property on this element has a binding error.
-		/// </summary>
-		public virtual bool HasBindingError
-		{
-			get
-			{
-				return false;
-			}
-		}
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+
+                    // Need to expand all ancestors so this will be visible in the tree.
+                    if (_isSelected)
+                        Parent?.ExpandTo();
+
+                    OnPropertyChanged(nameof(IsSelected));
+                    OnSelectionChanged();
+                }
+            }
+        }
+        protected virtual void OnSelectionChanged()
+        {
+        }
+        private bool _isSelected;
+
+        /// <summary>
+        /// Need this to databind to TreeView so we can display to hidden items.
+        /// </summary>
+        public bool IsExpanded
+        {
+            get { return _isExpanded; }
+            set
+            {
+                if (_isExpanded != value)
+                {
+                    _isExpanded = value;
+                    OnPropertyChanged(nameof(IsExpanded));
+                }
+            }
+        }
+        /// <summary>
+        /// Expand this element and all elements leading to it.
+        /// Used to show this element in the tree view.
+        /// </summary>
+        private void ExpandTo()
+        {
+            Parent?.ExpandTo();
+
+            IsExpanded = true;
+        }
+        private bool _isExpanded;
 
 
-		/// <summary>
-		/// Update the view of this visual, rebuild children as necessary
-		/// </summary>
-		public void Reload()
-		{
-		    var element = Target as FrameworkElement;
-		    _name = element != null ? element.Name : string.Empty;
+        public virtual Visual MainVisual => null;
 
-			_nameLower = (_name ?? "").ToLower();
-			_typeNameLower = Target != null ? Target.GetType().Name.ToLower() : string.Empty;
+        public virtual Brush TreeBackgroundBrush => new SolidColorBrush(Color.FromArgb(255, 240, 240, 240));
 
-			List<VisualTreeItem> toBeRemoved = new List<VisualTreeItem>(Children);
-			Reload(toBeRemoved);
-			foreach (VisualTreeItem item in toBeRemoved)
-				RemoveChild(item);
+        public virtual Brush VisualBrush => null;
+
+        /// <summary>
+        /// Checks to see if any property on this element has a binding error.
+        /// </summary>
+        public virtual bool HasBindingError => false;
 
 
-			// calculate the number of visual children
-			foreach (VisualTreeItem child in Children)
-			{
-				if (child is VisualItem)
-					_visualChildrenCount++;
+        /// <summary>
+        /// Update the view of this visual, rebuild children as necessary
+        /// </summary>
+        public void Reload()
+        {
+            _name = GetName();
 
-				_visualChildrenCount += child._visualChildrenCount;
-			}
-		}
-		protected virtual void Reload(List<VisualTreeItem> toBeRemoved)
-		{
-		}
+            _nameLower = (_name ?? "").ToLower();
+            _typeNameLower = Target?.GetType().Name.ToLower() ?? string.Empty;
+
+            var toBeRemoved = new List<VisualTreeItem>(Children);
+            Reload(toBeRemoved);
+            foreach (var item in toBeRemoved)
+                RemoveChild(item);
+
+            // calculate the number of visual children
+            foreach (var child in Children)
+            {
+                if (child is VisualItem)
+                    _visualChildrenCount++;
+
+                _visualChildrenCount += child._visualChildrenCount;
+            }
+        }
+
+        protected virtual string GetName()
+        {
+            return string.Empty;
+        }
+
+        protected virtual void Reload(List<VisualTreeItem> toBeRemoved)
+        {
+        }
 
 
 
-		public VisualTreeItem FindNode(object node)
-		{
-		    // it might be faster to have a map for the lookup
-			// check into this at some point
-		    return Target == node
-		        ? this
-		        : Children.Select(child => child.FindNode(node)).FirstOrDefault(n => n != null);
-		}
+        public VisualTreeItem FindNode(object node)
+        {
+            // it might be faster to have a map for the lookup
+            // check into this at some point
+            return Target == node
+                ? this
+                : Children.Select(child => child.FindNode(node)).FirstOrDefault(n => n != null);
+        }
 
 
-	    /// <summary>
-		/// Used for tree search.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public bool Filter(string value)
-		{
-			if (_typeNameLower.Contains(value))
-				return true;
-			if (_nameLower.Contains(value))
-				return true;
-			int n;
-			if (int.TryParse(value, out n) && n == _depth)
-				return true;
-			return false;
-		}
+        /// <summary>
+        /// Used for tree search.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool Filter(string value)
+        {
+            if (_typeNameLower.Contains(value))
+                return true;
+            if (_nameLower.Contains(value))
+                return true;
+            int n;
+            if (int.TryParse(value, out n) && n == Depth)
+                return true;
+            return false;
+        }
 
 
-		protected void RemoveChild(VisualTreeItem item)
-		{
-			item.IsSelected = false;
-			Children.Remove(item);
-		}
+        protected void RemoveChild(VisualTreeItem item)
+        {
+            item.IsSelected = false;
+            Children.Remove(item);
+        }
 
-		private string _name;
-		private string _nameLower = string.Empty;
-		private string _typeNameLower = string.Empty;
-		private int _visualChildrenCount;
+        private string _name;
+        private string _nameLower = string.Empty;
+        private string _typeNameLower = string.Empty;
+        private int _visualChildrenCount;
 
-	    public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-	    [NotifyPropertyChangedInvocator]
-	    protected virtual void OnPropertyChanged(string propertyName)
-	    {
-	        var handler = PropertyChanged;
-	        if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
-	    }
-	}
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 }

@@ -5,8 +5,8 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -23,15 +23,10 @@ namespace Snoop.MethodsTab
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-            List<AssemblyNamePair> listAssemblies = new List<AssemblyNamePair>();
-            foreach (var assembly in assemblies)
+            var listAssemblies = assemblies.Select(assembly => new AssemblyNamePair
             {
-                var namePair = new AssemblyNamePair();
-                namePair.Name = assembly.FullName;
-                namePair.Assembly = assembly;
-
-                listAssemblies.Add(namePair);
-            }
+                Name = assembly.FullName, Assembly = assembly
+            }).ToList();
 
             listAssemblies.Sort();
 
@@ -46,19 +41,12 @@ namespace Snoop.MethodsTab
 
             var types = assembly.GetTypes();
 
-            List<TypeNamePair> typePairs = new List<TypeNamePair>();
-
-            foreach (var type in types)
-            {
-                if (!type.IsPublic || type.IsAbstract)
-                    continue;
-
-                var pair = new TypeNamePair();
-                pair.Name = type.Name;
-                pair.Type = type;
-
-                typePairs.Add(pair);
-            }
+            var typePairs = types.Where(type => type.IsPublic && !type.IsAbstract)
+                .Select(type => new TypeNamePair
+                {
+                    Name = type.Name,
+                    Type = type
+                }).ToList();
 
             typePairs.Sort();
 

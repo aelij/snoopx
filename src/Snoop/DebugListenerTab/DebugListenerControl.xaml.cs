@@ -4,7 +4,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Snoop.Infrastructure;
 using Snoop.Properties;
 
 namespace Snoop.DebugListenerTab
@@ -85,9 +84,9 @@ namespace Snoop.DebugListenerTab
 		    };
 		    setFiltersWindow.ShowDialog();
 
-            string[] allLines = _allText.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var allLines = _allText.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             DebugContent.Clear();
-            foreach (string line in allLines)
+            foreach (var line in allLines)
             {
                 if (_filtersViewModel.FilterMatches(line))
                 {

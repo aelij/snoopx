@@ -4,14 +4,12 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
-using System.Windows;
-
 namespace Snoop.Views
 {
 	/// <summary>
 	/// Interaction logic for SnoopabilityFeedbackWindow.xaml
 	/// </summary>
-	public partial class SnoopabilityFeedbackWindow : Window
+	public partial class SnoopabilityFeedbackWindow
 	{
 		public SnoopabilityFeedbackWindow()
 		{

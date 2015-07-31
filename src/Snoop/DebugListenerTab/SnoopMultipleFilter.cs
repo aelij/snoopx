@@ -14,26 +14,17 @@ namespace Snoop.DebugListenerTab
 		    return _singleFilters.All(filter => filter.FilterMatches(debugLine));
 		}
 
-	    public override bool SupportsGrouping
-		{
-			get { return false; }
-		}
+	    public override bool SupportsGrouping => false;
 
-		public override string GroupId
+	    public override string GroupId
 		{
 			get { return _singleFilters.Count == 0 ? string.Empty : _singleFilters[0].GroupId; }
 		    set { throw new NotSupportedException(); }
 		}
 
-		public bool IsValidMultipleFilter
-		{
-			get
-			{
-				return _singleFilters.Count > 0;
-			}
-		}
+		public bool IsValidMultipleFilter => _singleFilters.Count > 0;
 
-		public void AddFilter(SnoopFilter singleFilter)
+	    public void AddFilter(SnoopFilter singleFilter)
 		{
 			if (!singleFilter.SupportsGrouping)
 				throw new NotSupportedException("The filter is not grouped");

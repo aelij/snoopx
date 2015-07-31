@@ -4,6 +4,7 @@
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
 // All other rights reserved.
 
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
@@ -18,16 +19,16 @@ namespace Snoop.Infrastructure
 				return string.Empty;
 			}
 
-			object resourceItem = dependencyObject.GetValue(dp);
+			var resourceItem = dependencyObject.GetValue(dp);
 			if (resourceItem != null)
 			{
 				// Walk up the visual tree, looking for the resourceItem in each frameworkElement's resource dictionary.
 				while (dependencyObject != null)
 				{
-					FrameworkElement frameworkElement = dependencyObject as FrameworkElement;
+					var frameworkElement = dependencyObject as FrameworkElement;
                     if (frameworkElement != null)
                     {
-                        string resourceKey = GetKeyInResourceDictionary(frameworkElement.Resources, resourceItem);
+                        var resourceKey = GetKeyInResourceDictionary(frameworkElement.Resources, resourceItem);
                         if (resourceKey != null)
                         {
                             return resourceKey;
@@ -44,7 +45,7 @@ namespace Snoop.Infrastructure
 				// check the application resources
 				if (Application.Current != null)
 				{
-					string resourceKey = GetKeyInResourceDictionary(Application.Current.Resources, resourceItem);
+					var resourceKey = GetKeyInResourceDictionary(Application.Current.Resources, resourceItem);
 					if (resourceKey != null)
 						return resourceKey;
 				}
@@ -54,7 +55,7 @@ namespace Snoop.Infrastructure
 
 		public static string GetKeyInResourceDictionary(ResourceDictionary dictionary, object resourceItem)
 		{
-			foreach (object key in dictionary.Keys)
+			foreach (var key in dictionary.Keys)
 			{
 				if (dictionary[key] == resourceItem)
 				{
@@ -62,19 +63,8 @@ namespace Snoop.Infrastructure
 				}
 			}
 
-			if (dictionary.MergedDictionaries != null)
-			{
-				foreach (var dic in dictionary.MergedDictionaries)
-				{
-					string name = GetKeyInResourceDictionary(dic, resourceItem);
-					if (!string.IsNullOrEmpty(name))
-					{
-						return name;
-					}
-				}
-			}
-
-			return null;
+		    return dictionary.MergedDictionaries.Select(dic => GetKeyInResourceDictionary(dic, resourceItem))
+		            .FirstOrDefault(name => !string.IsNullOrEmpty(name));
 		}
 	}
 }

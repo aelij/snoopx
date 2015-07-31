@@ -14,7 +14,7 @@ namespace Snoop.Utilities
 
         public WindowInfo(IntPtr hwnd)
         {
-            _hwnd = hwnd;			
+            HWnd = hwnd;			
         }
 
         public static void ClearCachedProcessInfo()
@@ -46,7 +46,7 @@ namespace Snoop.Utilities
         private IEnumerable<NativeMethods.MODULEENTRY32> GetModules()
         {
             int processId;
-            NativeMethods.GetWindowThreadProcessId(_hwnd, out processId);
+            NativeMethods.GetWindowThreadProcessId(HWnd, out processId);
 
             return GetModulesByProcessId(processId);
         }
@@ -77,13 +77,13 @@ namespace Snoop.Utilities
         {
             get
             {
-                bool isValid = false;
+                var isValid = false;
                 try
                 {
-                    if (_hwnd == IntPtr.Zero)
+                    if (HWnd == IntPtr.Zero)
                         return false;
 
-                    Process process = OwningProcess;
+                    var process = OwningProcess;
                     if (process == null)
                         return false;
 
@@ -122,23 +122,15 @@ namespace Snoop.Utilities
             }
         }
 
-        public Process OwningProcess
-        {
-            get { return NativeMethods.GetWindowThreadProcess(_hwnd); }
-        }
+        public Process OwningProcess => NativeMethods.GetWindowThreadProcess(HWnd);
 
-        private readonly IntPtr _hwnd;
-
-        public IntPtr HWnd
-        {
-            get { return _hwnd; }
-        }
+        public IntPtr HWnd { get; }
 
         public string Description
         {
             get
             {
-                Process process = OwningProcess;
+                var process = OwningProcess;
                 if (!string.IsNullOrEmpty(process.MainWindowTitle))
                 {
                     return process.MainWindowTitle + " - " + process.ProcessName + " [" + process.Id + "]";
@@ -183,7 +175,7 @@ namespace Snoop.Utilities
         private void OnFailedToAttach(Exception e)
         {
             var handler = AttachFailed;
-            if (handler != null) handler(this, new AttachFailedEventArgs(e, Description));
+            handler?.Invoke(this, new AttachFailedEventArgs(e, Description));
         }
     }
 }

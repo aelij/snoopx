@@ -5,9 +5,9 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
@@ -23,7 +23,7 @@ namespace Snoop.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            SnoopParameterInformation paramInfo = value as SnoopParameterInformation;
+            var paramInfo = value as SnoopParameterInformation;
             if (paramInfo == null)
                 return value;
 
@@ -36,7 +36,7 @@ namespace Snoop.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         #endregion
@@ -50,21 +50,21 @@ namespace Snoop.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            SnoopParameterInformation paramInfo = (SnoopParameterInformation)value;
-            Type t = paramInfo.DeclaringType;
+            var paramInfo = (SnoopParameterInformation)value;
+            var t = paramInfo.DeclaringType;
 
             //var fields = t.GetFields(System.Reflection.BindingFlags.FlattenHierarchy);
             var fields = t.GetFields(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static);
 
             var dpType = typeof(DependencyProperty);
 
-            List<DependencyPropertyNameValuePair> dependencyProperties = new List<DependencyPropertyNameValuePair>();
-
-            foreach (var field in fields)
-            {
-                if (dpType.IsAssignableFrom(field.FieldType))
-                    dependencyProperties.Add(new DependencyPropertyNameValuePair { DependencyPropertyName = field.Name, DependencyProperty = (DependencyProperty)field.GetValue(null) });
-            }
+            var dependencyProperties = fields
+                .Where(field => dpType.IsAssignableFrom(field.FieldType))
+                .Select(field => new DependencyPropertyNameValuePair
+                {
+                    DependencyPropertyName = field.Name,
+                    DependencyProperty = (DependencyProperty) field.GetValue(null)
+                }).ToList();
 
             dependencyProperties.Sort();
 
@@ -73,7 +73,7 @@ namespace Snoop.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         #endregion
@@ -94,9 +94,9 @@ namespace Snoop.Converters
 
         public int CompareTo(object obj)
         {
-            DependencyPropertyNameValuePair toCompareTo = (DependencyPropertyNameValuePair)obj;
+            var toCompareTo = (DependencyPropertyNameValuePair)obj;
 
-            return DependencyPropertyName.CompareTo(toCompareTo.DependencyPropertyName);
+            return string.Compare(DependencyPropertyName, toCompareTo.DependencyPropertyName, StringComparison.Ordinal);
         }
 
         #endregion
@@ -125,7 +125,7 @@ namespace Snoop.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         #endregion

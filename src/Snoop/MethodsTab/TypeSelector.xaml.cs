@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 
 namespace Snoop.MethodsTab
@@ -19,21 +20,13 @@ namespace Snoop.MethodsTab
             Loaded += TypeSelector_Loaded;            
         }
 
-        //TODO: MOVE SOMEWHERE ELSE. MACIEK
         public static List<Type> GetDerivedTypes(Type baseType)
         {
-            List<Type> typesAssignable = new List<Type>();
-
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (baseType.IsAssignableFrom(type))
-                    {
-                        typesAssignable.Add(type);
-                    }
-                }
-            }
+            var typesAssignable = (
+                from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                from type in assembly.GetTypes()
+                where baseType.IsAssignableFrom(type)
+                select type).ToList();
 
             if (!baseType.IsAbstract)
             {
@@ -45,11 +38,7 @@ namespace Snoop.MethodsTab
             return typesAssignable;
         }
 
-        public List<Type> DerivedTypes
-        {
-            get;
-            set;
-        }
+        public List<Type> DerivedTypes { get; set; }
 
         private void TypeSelector_Loaded(object sender, RoutedEventArgs e)
         {
@@ -81,6 +70,4 @@ namespace Snoop.MethodsTab
             Close();
         }
     }
-
-
 }

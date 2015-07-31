@@ -92,7 +92,7 @@ namespace Snoop.DebugListenerTab
 
 	    public void GroupFilters(ICollection<SnoopFilter> filtersToGroup)
 		{
-			SnoopMultipleFilter multipleFilter = new SnoopMultipleFilter();
+			var multipleFilter = new SnoopMultipleFilter();
 			multipleFilter.AddRange(filtersToGroup, (_multipleFilters.Count + 1).ToString());
 
 			_multipleFilters.Add(multipleFilter);
@@ -111,7 +111,7 @@ namespace Snoop.DebugListenerTab
 			if (singleFilter != null)
 			{
 				//foreach (var multipeFilter in this.multipleFilters)
-				int index = 0;
+				var index = 0;
 				while (index < _multipleFilters.Count)
 				{
 					var multipeFilter = _multipleFilters[index];
@@ -166,21 +166,14 @@ namespace Snoop.DebugListenerTab
 		}
 
 		private readonly ObservableCollection<SnoopFilter> _filters = new ObservableCollection<SnoopFilter>();
-		public IEnumerable<SnoopFilter> Filters
-		{
-			get
-			{
-				return _filters;
-			}
-		}
+		public IEnumerable<SnoopFilter> Filters => _filters;
 
-		public event PropertyChangedEventHandler PropertyChanged;
+	    public event PropertyChangedEventHandler PropertyChanged;
 
 		protected void RaisePropertyChanged(string propertyName)
 		{
 			var handler = PropertyChanged;
-			if (handler != null)
-				handler(this, new PropertyChangedEventArgs(propertyName));
+		    handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

@@ -13,32 +13,24 @@ namespace Snoop.MethodsTab
 {
     public class SnoopMethodInformation : IComparable, IEquatable<SnoopMethodInformation>
     {
-        private readonly MethodInfo _methodInfo;
-
         public string MethodName
         {
             get;
             set;
         }
 
-        public MethodInfo MethodInfo
-        {
-            get
-            {
-                return _methodInfo;
-            }
-        }
+        public MethodInfo MethodInfo { get; }
 
         public SnoopMethodInformation(MethodInfo methodInfo)
         {
-            _methodInfo = methodInfo;
+            MethodInfo = methodInfo;
         }
 
         #region IComparable Members
 
         public int CompareTo(object obj)
         {
-            return String.CompareOrdinal(MethodName, ((SnoopMethodInformation)obj).MethodName);
+            return string.CompareOrdinal(MethodName, ((SnoopMethodInformation)obj).MethodName);
         }
 
         #endregion
@@ -50,10 +42,10 @@ namespace Snoop.MethodsTab
 
         public IList<SnoopParameterInformation> GetParameters(Type declaringType)
         {
-            if (_methodInfo == null)
+            if (MethodInfo == null)
                 return new List<SnoopParameterInformation>();
 
-            var parameterInfos = _methodInfo.GetParameters();
+            var parameterInfos = MethodInfo.GetParameters();
 
 
             return parameterInfos.Select(parameterInfo => 
@@ -79,7 +71,7 @@ namespace Snoop.MethodsTab
             if (thisParameterInfos.Length != otherParameterInfos.Length)
                 return false;
 
-            for (int i = 0; i < thisParameterInfos.Length; i++)
+            for (var i = 0; i < thisParameterInfos.Length; i++)
             {
                 var thisParameterInfo = thisParameterInfos[i];
                 var otherParameterInfo = otherParameterInfos[i];             
@@ -92,7 +84,7 @@ namespace Snoop.MethodsTab
             return true;
         }
 
-        private bool ParameterInfosEqual(ParameterInfo parm1, ParameterInfo parm2)
+        private static bool ParameterInfosEqual(ParameterInfo parm1, ParameterInfo parm2)
         {
             if (!(parm1.Name.Equals(parm2.Name)))
                 return false;

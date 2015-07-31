@@ -64,20 +64,20 @@ namespace Snoop.Utilities
                     Environment.NewLine
                 );
 
-            int dispatcherCount = 1;
+            var dispatcherCount = 1;
 
             // ReSharper disable once InconsistentlySynchronizedField
-            foreach (KeyValuePair<Dispatcher, Dictionary<VisualTreeItem, List<PropertyValueInfo>>> dispatcherKvp in _itemsWithEditedProperties)
+            foreach (var dispatcherKvp in _itemsWithEditedProperties)
             {
                 if (_itemsWithEditedProperties.Count > 1)
                 {
                     sb.AppendFormat("-- Dispatcher #{0} -- {1}", dispatcherCount++, Environment.NewLine);
                 }
 
-                foreach (KeyValuePair<VisualTreeItem, List<PropertyValueInfo>> objectPropertiesPair in dispatcherKvp.Value)
+                foreach (var objectPropertiesPair in dispatcherKvp.Value)
                 {
                     sb.AppendFormat("Object: {0}{1}", objectPropertiesPair.Key, Environment.NewLine);
-                    foreach (PropertyValueInfo propInfo in objectPropertiesPair.Value)
+                    foreach (var propInfo in objectPropertiesPair.Value)
                     {
                         sb.AppendFormat
                             (

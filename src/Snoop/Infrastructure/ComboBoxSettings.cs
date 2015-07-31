@@ -54,10 +54,7 @@ namespace Snoop.Infrastructure
 		private static void OnIsSnoopPartChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
 		{			
 			var cb = o as ComboBox;
-			if (cb != null)
-			{
-				cb.WhenLoaded(fe => UpdateSnoopPartSettings(cb, (bool)e.NewValue));
-			}
+		    cb?.WhenLoaded(fe => UpdateSnoopPartSettings(cb, (bool)e.NewValue));
 		}
 
 		private static void UpdateSnoopPartSettings(ComboBox comboBox, bool isSnoopPart)
@@ -80,7 +77,7 @@ namespace Snoop.Infrastructure
 
 		private static Popup GetComboBoxPopup(ComboBox comboBox)
 		{
-			if (comboBox == null || comboBox.Template == null)
+			if (comboBox?.Template == null)
 			{
 				return null;
 			}

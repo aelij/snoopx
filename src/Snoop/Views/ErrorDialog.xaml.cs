@@ -16,7 +16,7 @@ namespace Snoop.Views
 	/// <summary>
 	/// Interaction logic for ErrorDialog.xaml
 	/// </summary>
-	public partial class ErrorDialog : Window
+	public partial class ErrorDialog
 	{
 		public ErrorDialog()
 		{
@@ -47,7 +47,8 @@ namespace Snoop.Views
 			}
 			catch (Exception ex)
 			{
-				string message = string.Format("There was an error copying to the clipboard:\nMessage = {0}\n\nPlease copy the exception from the above textbox manually!", ex.Message);
+				string message =
+				    $"There was an error copying to the clipboard:\nMessage = {ex.Message}\n\nPlease copy the exception from the above textbox manually!";
 				MessageBox.Show(message, "Error copying to clipboard");
 			}
 		}
@@ -59,7 +60,8 @@ namespace Snoop.Views
 			}
 			catch (Exception)
 			{
-				string message = string.Format("There was an error starting the browser. Please visit \"{0}\" to create the issue.", e.Uri.AbsoluteUri);
+				string message =
+				    $"There was an error starting the browser. Please visit \"{e.Uri.AbsoluteUri}\" to create the issue.";
 				MessageBox.Show(message, "Error starting browser");
 			}
 		}
@@ -85,7 +87,7 @@ namespace Snoop.Views
 
 		private string GetExceptionMessage()
 		{
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			GetExceptionString(Exception, builder);
 			return builder.ToString();
 		}
@@ -97,8 +99,8 @@ namespace Snoop.Views
 			if (isInner)
 				builder.AppendLine("\n\nInnerException:\n");
 
-			builder.AppendLine(string.Format("Message: {0}", exception.Message));
-			builder.AppendLine(string.Format("Stacktrace:\n{0}", exception.StackTrace));
+			builder.AppendLine($"Message: {exception.Message}");
+			builder.AppendLine($"Stacktrace:\n{exception.StackTrace}");
 
 			GetExceptionString(exception.InnerException, builder, true);
 		}

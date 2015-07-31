@@ -32,7 +32,7 @@ namespace Snoop.VisualTree
             Visual = visual;
         }
 
-        public Visual Visual { get; private set; }
+        public Visual Visual { get; }
 
         public override bool HasBindingError
         {
@@ -53,15 +53,9 @@ namespace Snoop.VisualTree
             }
         }
 
-        public override Visual MainVisual
-        {
-            get { return Visual; }
-        }
+        public override Visual MainVisual => Visual;
 
-        public override Brush TreeBackgroundBrush
-        {
-            get { return Brushes.Transparent; }
-        }
+        public override Brush TreeBackgroundBrush => Brushes.Transparent;
 
         public override Brush VisualBrush
         {
@@ -76,10 +70,8 @@ namespace Snoop.VisualTree
         {
             get
             {
-                FrameworkElement element = Visual as FrameworkElement;
-                if (element != null)
-                    return element.Resources;
-                return null;
+                var element = Visual as FrameworkElement;
+                return element?.Resources;
             }
         }
 
@@ -121,6 +113,11 @@ namespace Snoop.VisualTree
                     _adorner = null;
                 }
             }
+        }
+
+        protected override string GetName()
+        {
+            return (Visual as FrameworkElement)?.Name ?? string.Empty;
         }
 
         private int _lastKeyUpTime;
@@ -166,12 +163,12 @@ namespace Snoop.VisualTree
             base.Reload(toBeRemoved);
 
             // remove items that are no longer in tree, add new ones.
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(Visual); i++)
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(Visual); i++)
             {
                 var child = VisualTreeHelper.GetChild(Visual, i);
                 if (child != null)
                 {
-                    bool foundItem = false;
+                    var foundItem = false;
                     foreach (var item in toBeRemoved)
                     {
                         if (ReferenceEquals(item.Target, child))

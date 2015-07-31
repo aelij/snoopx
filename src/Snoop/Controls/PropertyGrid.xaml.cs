@@ -31,7 +31,6 @@ namespace Snoop.Controls
         public static readonly RoutedCommand DelveBindingExpressionCommand = new RoutedCommand();
 
         private readonly DelayedCall _filterCall;
-        private readonly ObservableCollection<PropertyInformation> _properties;
         private readonly ObservableCollection<PropertyInformation> _allProperties;
 
         private bool _unloaded;
@@ -42,7 +41,7 @@ namespace Snoop.Controls
         {
             _direction = ListSortDirection.Ascending;
             _allProperties = new ObservableCollection<PropertyInformation>();
-            _properties = new ObservableCollection<PropertyInformation>();
+            Properties = new ObservableCollection<PropertyInformation>();
             _filterCall = new DelayedCall(ProcessFilter, DispatcherPriority.Background);
 
             InitializeComponent();
@@ -64,7 +63,7 @@ namespace Snoop.Controls
             set
             {
                 _nameValueOnly = value;
-                GridView gridView = ListView != null && ListView.View != null ? ListView.View as GridView : null;
+                var gridView = ListView?.View as GridView;
                 if (_nameValueOnly && gridView != null && gridView.Columns.Count != 2)
                 {
                     gridView.Columns.RemoveAt(0);
@@ -77,11 +76,8 @@ namespace Snoop.Controls
         }
         private bool _nameValueOnly;
 
-        public ObservableCollection<PropertyInformation> Properties
-        {
-            get { return _properties; }
-        }
-   
+        public ObservableCollection<PropertyInformation> Properties { get; }
+
         public object Target
         {
             get { return GetValue(TargetProperty); }
@@ -98,7 +94,7 @@ namespace Snoop.Controls
             );
         private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            PropertyGrid propertyGrid = (PropertyGrid)d;
+            var propertyGrid = (PropertyGrid)d;
             propertyGrid.ChangeTarget(e.NewValue);
         }
 
@@ -108,13 +104,13 @@ namespace Snoop.Controls
             {
                 _target = newTarget;
 
-                foreach (PropertyInformation property in _properties)
+                foreach (var property in Properties)
                 {
                     property.Teardown();
                 }
                 RefreshPropertyGrid();
 
-                OnPropertyChanged("Type");
+                OnPropertyChanged(nameof(Type));
             }
         }
 
@@ -129,15 +125,7 @@ namespace Snoop.Controls
         }
         private PropertyInformation _selection;
 
-        public Type Type
-        {
-            get
-            {
-                if (_target != null)
-                    return _target.GetType();
-                return null;
-            }
-        }
+        public Type Type => _target?.GetType();
 
         protected virtual void OnFilterChanged()
         {
@@ -157,7 +145,7 @@ namespace Snoop.Controls
 
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            int visiblePropertyCount = 0;
+            var visiblePropertyCount = 0;
 
             foreach (var property in propertiesToAdd)
             {
@@ -168,7 +156,7 @@ namespace Snoop.Controls
 
                 if (property.IsVisible)
                 {
-                    _properties.Add(property);
+                    Properties.Add(property);
                 }
                 _allProperties.Add(property);
 
@@ -198,8 +186,8 @@ namespace Snoop.Controls
 
         private static void HandleShowBindingErrors(object sender, ExecutedRoutedEventArgs eventArgs)
         {
-            PropertyInformation propertyInformation = (PropertyInformation)eventArgs.Parameter;
-            Window window = new Window
+            var propertyInformation = (PropertyInformation)eventArgs.Parameter;
+            var window = new Window
             {
                 Content = new TextBox
                 {
@@ -215,7 +203,7 @@ namespace Snoop.Controls
             window.Closing +=
                 (s, e) =>
                 {
-                    Window w = (Window)s;
+                    var w = (Window)s;
                     SnoopPartsRegistry.RemoveSnoopVisualTreeRoot(w);
                 };
             window.Show();
@@ -248,13 +236,13 @@ namespace Snoop.Controls
                 return ListSortDirection.Descending;
             }
 
-            ListSortDirection direction = (ListSortDirection)columnHeader.Tag;
+            var direction = (ListSortDirection)columnHeader.Tag;
             return (ListSortDirection)(columnHeader.Tag = (ListSortDirection)(((int)direction + 1) % 2));
         }
 
         private void HandleSort(object sender, ExecutedRoutedEventArgs args)
         {
-            GridViewColumnHeader headerClicked = (GridViewColumnHeader)args.OriginalSource;
+            var headerClicked = (GridViewColumnHeader)args.OriginalSource;
 
             _direction = GetNewSortDirection(headerClicked);
 
@@ -278,16 +266,16 @@ namespace Snoop.Controls
             {
                 if (property.IsVisible)
                 {
-                    if (!_properties.Contains(property))
+                    if (!Properties.Contains(property))
                     {
                         InsertInPropertyOrder(property);
                     }
                 }
                 else
                 {
-                    if (_properties.Contains(property))
+                    if (Properties.Contains(property))
                     {
-                        _properties.Remove(property);
+                        Properties.Remove(property);
                     }
                 }
             }
@@ -297,28 +285,28 @@ namespace Snoop.Controls
 
         private void InsertInPropertyOrder(PropertyInformation property)
         {
-            if (_properties.Count == 0)
+            if (Properties.Count == 0)
             {
-                _properties.Add(property);
+                Properties.Add(property);
                 return;
             }
 
-            if (PropertiesAreInOrder(property, _properties[0]))
+            if (PropertiesAreInOrder(property, Properties[0]))
             {
-                _properties.Insert(0, property);
+                Properties.Insert(0, property);
                 return;
             }
 
-            for (int i = 0; i < _properties.Count - 1; i++)
+            for (var i = 0; i < Properties.Count - 1; i++)
             {
-                if (PropertiesAreInOrder(_properties[i], property) && PropertiesAreInOrder(property, _properties[i + 1]))
+                if (PropertiesAreInOrder(Properties[i], property) && PropertiesAreInOrder(property, Properties[i + 1]))
                 {
-                    _properties.Insert(i + 1, property);
+                    Properties.Insert(i + 1, property);
                     return;
                 }
             }
 
-            _properties.Add(property);
+            Properties.Add(property);
         }
 
         private bool PropertiesAreInOrder(PropertyInformation first, PropertyInformation last)
@@ -332,9 +320,9 @@ namespace Snoop.Controls
 
         private void SetIndexesOfProperties()
         {
-            for (int i = 0; i < _properties.Count; i++)
+            for (var i = 0; i < Properties.Count; i++)
             {
-                _properties[i].Index = i;
+                Properties[i].Index = i;
             }
         }
 
@@ -348,7 +336,7 @@ namespace Snoop.Controls
         }
         private void HandleUnloaded(object sender, EventArgs e)
         {
-            foreach (PropertyInformation property in _properties)
+            foreach (var property in Properties)
             {
                 property.Teardown();
             }
@@ -360,7 +348,7 @@ namespace Snoop.Controls
         {
             if (e.ClickCount == 2)
             {
-                PropertyInformation property = (PropertyInformation)((FrameworkElement)sender).DataContext;
+                var property = (PropertyInformation)((FrameworkElement)sender).DataContext;
 
                 object newTarget = null;
 
@@ -380,27 +368,27 @@ namespace Snoop.Controls
 
         private void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction)
         {
-            Sort(comparator, direction, _properties);
+            Sort(comparator, direction, Properties);
             Sort(comparator, direction, _allProperties);
         }
 
         private static void Sort(Comparison<PropertyInformation> comparator, ListSortDirection direction, ObservableCollection<PropertyInformation> propertiesToSort)
         {
-            List<PropertyInformation> sorter = new List<PropertyInformation>(propertiesToSort);
+            var sorter = new List<PropertyInformation>(propertiesToSort);
             sorter.Sort(comparator);
 
             if (direction == ListSortDirection.Descending)
                 sorter.Reverse();
 
             propertiesToSort.Clear();
-            foreach (PropertyInformation property in sorter)
+            foreach (var property in sorter)
                 propertiesToSort.Add(property);
         }
 
         private void RefreshPropertyGrid()
         {
             _allProperties.Clear();
-            _properties.Clear();
+            Properties.Clear();
 
             ProcessIncrementalPropertyAddAsync();
         }
@@ -430,7 +418,7 @@ namespace Snoop.Controls
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             var handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

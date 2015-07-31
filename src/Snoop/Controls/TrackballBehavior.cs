@@ -18,16 +18,16 @@ namespace Snoop.Controls
 		{
 			if (viewport == null)
 			{
-				throw new ArgumentNullException("viewport");
+				throw new ArgumentNullException(nameof(viewport));
 			}
 
 			_viewport = viewport;
 			_lookAtPoint = lookAtPoint;
 
-			ProjectionCamera projectionCamera = _viewport.Camera as ProjectionCamera;
+			var projectionCamera = _viewport.Camera as ProjectionCamera;
 			if (projectionCamera != null)
 			{
-				Vector3D offset = projectionCamera.Position - _lookAtPoint;
+				var offset = projectionCamera.Position - _lookAtPoint;
 				_distance = offset.Length;
 			}
 
@@ -47,7 +47,7 @@ namespace Snoop.Controls
 		private void Viewport_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 		{
 			e.MouseDevice.Capture(_viewport);
-			Point point = e.MouseDevice.GetPosition(_viewport);
+			var point = e.MouseDevice.GetPosition(_viewport);
 			_mouseDirection = GetDirectionFromPoint(point, _viewport.RenderSize);
 			_isRotating = true;
 			e.Handled = true;
@@ -56,9 +56,9 @@ namespace Snoop.Controls
 		{
 			if (_isRotating)
 			{
-				Point point = e.MouseDevice.GetPosition(_viewport);
-				Vector3D newMouseDirection = GetDirectionFromPoint(point, _viewport.RenderSize);
-				Quaternion q = GetRotationFromStartAndEnd(newMouseDirection, _mouseDirection, 2);
+				var point = e.MouseDevice.GetPosition(_viewport);
+				var newMouseDirection = GetDirectionFromPoint(point, _viewport.RenderSize);
+				var q = GetRotationFromStartAndEnd(newMouseDirection, _mouseDirection, 2);
 				_orientation *= q;
 				_mouseDirection = newMouseDirection;
 
@@ -82,10 +82,10 @@ namespace Snoop.Controls
 
 		private void UpdateCamera()
 		{
-			ProjectionCamera projectionCamera = _viewport.Camera as ProjectionCamera;
+			var projectionCamera = _viewport.Camera as ProjectionCamera;
 			if (projectionCamera != null)
 			{
-				Matrix3D matrix = Matrix3D.Identity;
+				var matrix = Matrix3D.Identity;
 				matrix.Rotate(_orientation);
 				projectionCamera.LookDirection = new Vector3D(0, 0, 1) * matrix;
 				projectionCamera.UpDirection = new Vector3D(0, -1, 0) * matrix;
@@ -95,12 +95,12 @@ namespace Snoop.Controls
 
 		private static Vector3D GetDirectionFromPoint(Point point, Size size)
 		{
-			double rx = size.Width / 2;
-			double ry = size.Height / 2;
-			double r = Math.Min(rx, ry);
-			double dx = (point.X - rx) / r;
-			double dy = (point.Y - ry) / r;
-			double rSquared = dx * dx + dy * dy;
+			var rx = size.Width / 2;
+			var ry = size.Height / 2;
+			var r = Math.Min(rx, ry);
+			var dx = (point.X - rx) / r;
+			var dy = (point.Y - ry) / r;
+			var rSquared = dx * dx + dy * dy;
 			if (rSquared <= 1)
 			{
 				return new Vector3D(dx, dy, -Math.Sqrt(2 - rSquared));
@@ -110,7 +110,7 @@ namespace Snoop.Controls
 
 		private static Quaternion GetRotationFromStartAndEnd(Vector3D start, Vector3D end, double angleMultiplier)
 		{
-			double factor = start.Length * end.Length;
+			var factor = start.Length * end.Length;
 
 			if (factor < 1e-6)
 			{
@@ -118,9 +118,9 @@ namespace Snoop.Controls
 				return Quaternion.Identity;
 			}
 		    // Both input directions have nonzero length.
-		    Vector3D axis = Vector3D.CrossProduct(start, end);
-		    double dotProduct = Vector3D.DotProduct(start, end) / factor;
-		    double angle = Math.Acos(dotProduct < -1 ? -1 : dotProduct > 1 ? 1 : dotProduct);
+		    var axis = Vector3D.CrossProduct(start, end);
+		    var dotProduct = Vector3D.DotProduct(start, end) / factor;
+		    var angle = Math.Acos(dotProduct < -1 ? -1 : dotProduct > 1 ? 1 : dotProduct);
 
 		    if (axis.LengthSquared < 1e-12)
 		    {

@@ -27,12 +27,12 @@ namespace Snoop.Views
 
         public PropertyInspector()
         {
-            _propertyFilter.SelectedFilterSet = AllFilterSets[0];
+            PropertyFilter.SelectedFilterSet = AllFilterSets[0];
 
             InitializeComponent();
 
             _inspector = PropertyGrid;
-            _inspector.Filter = _propertyFilter;
+            _inspector.Filter = PropertyFilter;
 
             CommandBindings.Add(new CommandBinding(PropertyGrid.SnipXamlCommand, HandleSnipXaml, CanSnipXaml));
             CommandBindings.Add(new CommandBinding(PropertyGrid.PopTargetCommand, HandlePopTarget, CanPopTarget));
@@ -55,7 +55,7 @@ namespace Snoop.Views
         {
             try
             {
-                string xaml = XamlWriter.Save(((PropertyInformation)e.Parameter).Value);
+                var xaml = XamlWriter.Save(((PropertyInformation)e.Parameter).Value);
                 Clipboard.SetData(DataFormats.Text, xaml);
                 MessageBox.Show("This brush has been copied to the clipboard. You can paste it into your project.", "Brush copied", MessageBoxButton.OK);
             }
@@ -87,13 +87,13 @@ namespace Snoop.Views
             );
         private static void HandleRootTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            PropertyInspector inspector = (PropertyInspector)d;
+            var inspector = (PropertyInspector)d;
 
             inspector._inspectStack.Clear();
             inspector.Target = e.NewValue;
 
             inspector._delvePathList.Clear();
-            inspector.OnPropertyChanged("DelvePath");
+            inspector.OnPropertyChanged(nameof(DelvePath));
         }
 
         public object Target
@@ -113,8 +113,8 @@ namespace Snoop.Views
 
         private static void HandleTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            PropertyInspector inspector = (PropertyInspector)d;
-            inspector.OnPropertyChanged("Type");
+            var inspector = (PropertyInspector)d;
+            inspector.OnPropertyChanged(nameof(Type));
 
             if (e.NewValue != null)
                 inspector._inspectStack.Add(e.NewValue);
@@ -123,14 +123,14 @@ namespace Snoop.Views
 
         private string GetDelvePath(Type rootTargetType)
         {
-            StringBuilder delvePath = new StringBuilder(rootTargetType.Name);
+            var delvePath = new StringBuilder(rootTargetType.Name);
 
             foreach (var propInfo in _delvePathList)
             {
                 int collectionIndex;
                 delvePath.Append((collectionIndex = propInfo.CollectionIndex) >= 0
-                    ? string.Format("[{0}]", collectionIndex)
-                    : string.Format(".{0}", propInfo.DisplayName));
+                    ? $"[{collectionIndex}]"
+                    : $".{propInfo.DisplayName}");
             }
 
             return delvePath.ToString();
@@ -138,7 +138,7 @@ namespace Snoop.Views
 
         private string GetCurrentTypeName(Type rootTargetType)
         {
-            string type = string.Empty;
+            var type = string.Empty;
             if (_delvePathList.Count > 0)
             {
                 type = _delvePathList[_delvePathList.Count - 1].Value != null
@@ -163,23 +163,15 @@ namespace Snoop.Views
                 if (RootTarget == null)
                     return "object is NULL";
 
-                Type rootTargetType = RootTarget.GetType();
-                string delvePath = GetDelvePath(rootTargetType);
-                string type = GetCurrentTypeName(rootTargetType);
+                var rootTargetType = RootTarget.GetType();
+                var delvePath = GetDelvePath(rootTargetType);
+                var type = GetCurrentTypeName(rootTargetType);
 
-                return string.Format("{0}\n({1})", delvePath, type);
+                return $"{delvePath}\n({type})";
             }
         }
 
-        public Type Type
-        {
-            get
-            {
-                if (Target != null)
-                    return Target.GetType();
-                return null;
-            }
-        }
+        public Type Type => Target?.GetType();
 
         public void PushTarget(object target)
         {
@@ -208,7 +200,7 @@ namespace Snoop.Views
                 if (_delvePathList.Count > 0)
                 {
                     _delvePathList.RemoveAt(_delvePathList.Count - 1);
-                    OnPropertyChanged("DelvePath");
+                    OnPropertyChanged(nameof(DelvePath));
                 }
             }
         }
@@ -235,7 +227,7 @@ namespace Snoop.Views
                 // and therefore, we don't add to our delveStack (the real one).
 
                 _delvePathList.Add(((PropertyInformation)e.Parameter));
-                OnPropertyChanged("DelvePath");
+                OnPropertyChanged(nameof(DelvePath));
             }
 
             PushTarget(realTarget);
@@ -272,21 +264,16 @@ namespace Snoop.Views
             e.Handled = true;
         }
 
-        public PropertyFilter PropertyFilter
-        {
-            get { return _propertyFilter; }
-        }
-
-        private readonly PropertyFilter _propertyFilter = new PropertyFilter(string.Empty, true);
+        public PropertyFilter PropertyFilter { get; } = new PropertyFilter(string.Empty, true);
 
         public string StringFilter
         {
-            get { return _propertyFilter.FilterString; }
+            get { return PropertyFilter.FilterString; }
             set
             {
-                _propertyFilter.FilterString = value;
+                PropertyFilter.FilterString = value;
 
-                _inspector.Filter = _propertyFilter;
+                _inspector.Filter = PropertyFilter;
 
                 OnPropertyChanged();
             }
@@ -294,12 +281,12 @@ namespace Snoop.Views
 
         public bool ShowDefaults
         {
-            get { return _propertyFilter.ShowDefaults; }
+            get { return PropertyFilter.ShowDefaults; }
             set
             {
-                _propertyFilter.ShowDefaults = value;
+                PropertyFilter.ShowDefaults = value;
 
-                _inspector.Filter = _propertyFilter;
+                _inspector.Filter = PropertyFilter;
 
                 OnPropertyChanged();
             }
@@ -331,10 +318,10 @@ namespace Snoop.Views
         /// </summary>
         public PropertyFilterSet SelectedFilterSet
         {
-            get { return _propertyFilter.SelectedFilterSet; }
+            get { return PropertyFilter.SelectedFilterSet; }
             set
             {
-                _propertyFilter.SelectedFilterSet = value;
+                PropertyFilter.SelectedFilterSet = value;
                 OnPropertyChanged();
 
                 if (value == null)
@@ -352,13 +339,13 @@ namespace Snoop.Views
                         dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                     }
 
-                    bool? res = dlg.ShowDialog();
+                    var res = dlg.ShowDialog();
                     if (res.GetValueOrDefault())
                     {
                         // take the adjusted values from the dialog, setter will SAVE them to user properties
                         UserFilterSets = CleansFilterPropertyNames(dlg.ItemsSource);
                         // trigger the UI to re-bind to the collection, so user sees changes they just made
-                        OnPropertyChanged("AllFilterSets");
+                        OnPropertyChanged(nameof(AllFilterSets));
                     }
 
                     // now that we're out of the dialog, set current selection back to "(default)"
@@ -373,7 +360,7 @@ namespace Snoop.Views
                 }
                 else
                 {
-                    _inspector.Filter = _propertyFilter;
+                    _inspector.Filter = PropertyFilter;
                     OnPropertyChanged();
                 }
             }
@@ -398,7 +385,7 @@ namespace Snoop.Views
                     }
                     catch (Exception ex)
                     {
-                        string msg = String.Format("Error reading user filters from settings. Using defaults.\r\n\r\n{0}", ex.Message);
+                        string msg = $"Error reading user filters from settings. Using defaults.\r\n\r\n{ex.Message}";
                         MessageBox.Show(msg, "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
                         ret.Clear();
                         ret.AddRange(_defaultFilterSets);
@@ -473,7 +460,7 @@ namespace Snoop.Views
         /// </summary>
         private static PropertyFilterSet[] CleansFilterPropertyNames(ICollection<PropertyFilterSet> collection)
         {
-            foreach (PropertyFilterSet filterItem in collection)
+            foreach (var filterItem in collection)
             {
                 filterItem.Properties = filterItem.Properties.Select(s => s.ToLower().Trim()).ToArray();
             }

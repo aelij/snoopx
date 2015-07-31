@@ -31,7 +31,7 @@ namespace Snoop.Controls
                 return false;
             }
 
-            VisualTreeItem rootItem = (VisualTreeItem)_rootItem.Target;
+            var rootItem = (VisualTreeItem)_rootItem.Target;
             if (rootItem == null)
             {
                 return false;
@@ -46,8 +46,8 @@ namespace Snoop.Controls
                 }
             }
 
-            VisualTreeItem item = (VisualTreeItem)curNode.DataContext;
-            VisualTreeItem selectedItem = _snoopUi.CurrentSelection;
+            var item = (VisualTreeItem)curNode.DataContext;
+            var selectedItem = _snoopUi.CurrentSelection;
             if (selectedItem != null && item.Depth < selectedItem.Depth)
             {
                 item = selectedItem;
@@ -58,7 +58,7 @@ namespace Snoop.Controls
                 return false;
             }
 
-            for (int i = 0; i < _maxDepth; ++i)
+            for (var i = 0; i < _maxDepth; ++i)
             {
                 item = item.Parent;
             }
@@ -92,7 +92,7 @@ namespace Snoop.Controls
             // The following assumptions are made:
             // 1. The visual structure of each TreeViewItem is the same regardless of its location.
             // 2. The control template of a TreeViewItem contains ItemsPresenter.
-            ProperTreeViewItem root = _pendingRoot;
+            var root = _pendingRoot;
 
             _pendingRoot = null;
             root.Loaded -= OnRootLoaded;
@@ -111,7 +111,7 @@ namespace Snoop.Controls
 
             if (itemsPresenter != null)
             {
-                int levelLayoutDepth = 2;
+                var levelLayoutDepth = 2;
                 DependencyObject tmp = itemsPresenter;
                 while (!ReferenceEquals(tmp, root))
                 {
@@ -119,7 +119,7 @@ namespace Snoop.Controls
                     tmp = VisualTreeHelper.GetParent(tmp);
                 }
 
-                int rootLayoutDepth = 0;
+                var rootLayoutDepth = 0;
                 while (tmp != null)
                 {
                     ++rootLayoutDepth;
@@ -181,7 +181,7 @@ namespace Snoop.Controls
             // Check whether the tree is too deep.
             try
             {
-                ProperTreeView treeView = (ProperTreeView)_treeView.Target;
+                var treeView = (ProperTreeView)_treeView.Target;
                 if (treeView == null || !treeView.ApplyReduceDepthFilterIfNeeded(this))
                 {
                     return base.MeasureOverride(constraint);
@@ -199,7 +199,7 @@ namespace Snoop.Controls
             // Check whether the tree is too deep.
             try
             {
-                ProperTreeView treeView = (ProperTreeView)_treeView.Target;
+                var treeView = (ProperTreeView)_treeView.Target;
                 if (treeView == null || !treeView.ApplyReduceDepthFilterIfNeeded(this))
                 {
                     return base.ArrangeOverride(arrangeBounds);

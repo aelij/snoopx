@@ -13,48 +13,28 @@ namespace Snoop
 {
 	public class ValueEditorTemplateSelector : DataTemplateSelector
 	{
-		public DataTemplate StandardTemplate
-		{
-			get { return _standardTemplate; }
-			set { _standardTemplate = value; }
-		}
-		private DataTemplate _standardTemplate;
+		public DataTemplate StandardTemplate { get; set; }
 
-		public DataTemplate EnumTemplate
-		{
-			get { return _enumTemplate; }
-			set { _enumTemplate = value; }
-		}
-		private DataTemplate _enumTemplate;
+	    public DataTemplate EnumTemplate { get; set; }
 
-		public DataTemplate BoolTemplate
-		{
-			get { return _boolTemplate; }
-			set { _boolTemplate = value; }
-		}
-		private DataTemplate _boolTemplate;
+	    public DataTemplate BoolTemplate { get; set; }
 
-		public DataTemplate BrushTemplate
-		{
-			get { return _brushTemplate; }
-			set { _brushTemplate = value; }
-		}
-		private DataTemplate _brushTemplate;
+	    public DataTemplate BrushTemplate { get; set; }
 
 
-		public override DataTemplate SelectTemplate(object item, DependencyObject container)
+	    public override DataTemplate SelectTemplate(object item, DependencyObject container)
 		{
-			PropertyInformation property = (PropertyInformation)item;
+			var property = (PropertyInformation)item;
 
 			if (property.PropertyType.IsEnum)
 				return EnumTemplate;
-		    if (property.PropertyType.Equals(typeof(bool)))
+		    if (property.PropertyType == typeof(bool))
 		        return BoolTemplate;
 		    if ( property.PropertyType.IsGenericType 
 		         && Nullable.GetUnderlyingType( property.PropertyType ) == typeof(bool) )
 		        return BoolTemplate;
 		    if (typeof(Brush).IsAssignableFrom(property.PropertyType))
-		        return _brushTemplate;
+		        return BrushTemplate;
 
 		    return StandardTemplate;
 		}

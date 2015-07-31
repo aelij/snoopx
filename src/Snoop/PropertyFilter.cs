@@ -43,15 +43,9 @@ namespace Snoop
 
 	    public PropertyFilterSet SelectedFilterSet { get; set; }
 
-		public bool IsPropertyFilterSet
-		{
-			get
-			{
-				return (SelectedFilterSet != null && SelectedFilterSet.Properties != null);
-			}
-		}
+		public bool IsPropertyFilterSet => SelectedFilterSet?.Properties != null;
 
-		public bool Show(PropertyInformation property)
+	    public bool Show(PropertyInformation property)
 		{
 		    // use a regular expression if we have one and we also have a filter string.
 			if (_filterRegex != null && !string.IsNullOrEmpty(FilterString))

@@ -23,7 +23,7 @@ namespace Snoop.MethodsTab
 
         public int CompareTo(object obj)
         {
-            return Name.CompareTo(((TypeNamePair)obj).Name);
+            return string.Compare(Name, ((TypeNamePair)obj).Name, StringComparison.Ordinal);
         }
 
         #endregion

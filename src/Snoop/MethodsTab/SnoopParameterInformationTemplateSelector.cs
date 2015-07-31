@@ -13,17 +13,19 @@ namespace Snoop.MethodsTab
     {
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            FrameworkElement element = container as FrameworkElement;
+            var element = container as FrameworkElement;
             if (element == null)
                 return null;
 
-            SnoopParameterInformation snoopParameterInfo = item as SnoopParameterInformation;
-            //if (snoopParameterInfo.TypeConverter.GetType() == typeof(TypeConverter))
-            if (snoopParameterInfo.IsEnum || snoopParameterInfo.ParameterType.Equals(typeof(bool)))
+            var snoopParameterInfo = item as SnoopParameterInformation;
+            if (snoopParameterInfo == null)
+                return null;
+
+            if (snoopParameterInfo.IsEnum || snoopParameterInfo.ParameterType == typeof(bool))
             {
                 return element.FindResource("EnumParameterTemplate") as DataTemplate;
             }
-            if (snoopParameterInfo.ParameterType.Equals(typeof(DependencyProperty)))
+            if (snoopParameterInfo.ParameterType == typeof(DependencyProperty))
             {
                 return element.FindResource("DependencyPropertyTemplate") as DataTemplate;
             }

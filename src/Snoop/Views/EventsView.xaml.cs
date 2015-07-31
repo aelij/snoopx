@@ -31,11 +31,11 @@ namespace Snoop.Views
             _interestingEvents = new ObservableCollection<TrackedEvent>();
             InitializeComponent();
 
-            List<EventTracker> sorter = new List<EventTracker>();
+            var sorter = new List<EventTracker>();
 
-            foreach (RoutedEvent routedEvent in EventManager.GetRoutedEvents())
+            foreach (var routedEvent in EventManager.GetRoutedEvents())
             {
-                EventTracker tracker = new EventTracker(typeof(UIElement), routedEvent);
+                var tracker = new EventTracker(typeof(UIElement), routedEvent);
                 tracker.EventHandled += HandleEventHandled;
                 sorter.Add(tracker);
 
@@ -47,7 +47,7 @@ namespace Snoop.Views
 
             sorter.Sort();
 
-            foreach (EventTracker tracker in sorter)
+            foreach (var tracker in sorter)
             {
                 _trackers.Add(tracker);
             }
@@ -55,10 +55,7 @@ namespace Snoop.Views
             CommandBindings.Add(new CommandBinding(ClearCommand, HandleClear));
         }
 
-        public IEnumerable InterestingEvents
-        {
-            get { return _interestingEvents; }
-        }
+        public IEnumerable InterestingEvents => _interestingEvents;
 
         private readonly ObservableCollection<TrackedEvent> _interestingEvents;
 
@@ -87,7 +84,7 @@ namespace Snoop.Views
 
         private void HandleEventHandled(TrackedEvent trackedEvent)
         {
-            Visual visual = trackedEvent.Originator.Handler as Visual;
+            var visual = trackedEvent.Originator.Handler as Visual;
             if (visual != null && !visual.IsPartOfSnoopVisualTree())
             {
                 Action action =
@@ -98,9 +95,8 @@ namespace Snoop.Views
                         while (_interestingEvents.Count > 100)
                             _interestingEvents.RemoveAt(0);
 
-                        TreeViewItem tvi = (TreeViewItem)EventTree.ItemContainerGenerator.ContainerFromItem(trackedEvent);
-                        if (tvi != null)
-                            tvi.BringIntoView();
+                        var tvi = (TreeViewItem)EventTree.ItemContainerGenerator.ContainerFromItem(trackedEvent);
+                        tvi?.BringIntoView();
                     };
 
                 if (!Dispatcher.CheckAccess())
@@ -169,36 +165,21 @@ namespace Snoop.Views
     {
         public InterestingEvent(object handledBy, RoutedEventArgs eventArgs)
         {
-            _handledBy = handledBy;
-            _triggeredOn = null;
-            _eventArgs = eventArgs;
+            HandledBy = handledBy;
+            TriggeredOn = null;
+            EventArgs = eventArgs;
         }
 
 
-        public RoutedEventArgs EventArgs
-        {
-            get { return _eventArgs; }
-        }
-        private readonly RoutedEventArgs _eventArgs;
+        public RoutedEventArgs EventArgs { get; }
 
 
-        public object HandledBy
-        {
-            get { return _handledBy; }
-        }
-        private readonly object _handledBy;
+        public object HandledBy { get; }
 
 
-        public object TriggeredOn
-        {
-            get { return _triggeredOn; }
-        }
-        private readonly object _triggeredOn;
+        public object TriggeredOn { get; }
 
 
-        public bool Handled
-        {
-            get { return _handledBy != null; }
-        }
+        public bool Handled => HandledBy != null;
     }
 }

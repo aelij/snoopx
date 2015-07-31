@@ -54,7 +54,7 @@ namespace Snoop.Utilities
 
 		        if (attachedPropertyForType.TargetType.IsSubclassOf(typeof(DependencyObject)))
 		        {
-		            DependencyObjectType doType = DependencyObjectType.FromSystemType(attachedPropertyForType.TargetType);
+		            var doType = DependencyObjectType.FromSystemType(attachedPropertyForType.TargetType);
 		            if (doType.IsInstanceOfType(element))
 		            {
 		                return true;

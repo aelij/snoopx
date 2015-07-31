@@ -34,7 +34,7 @@ namespace Snoop.Infrastructure
             if (resourceDictionary != null)
             {
                 var stackPanel = new StackPanel();
-                foreach (object value in resourceDictionary.Values)
+                foreach (var value in resourceDictionary.Values)
                 {
                     var element = CreateIfPossible(value);
                     if (element != null)
@@ -61,7 +61,7 @@ namespace Snoop.Infrastructure
 
         private static UIElement CreateRectangleForVisual(Visual uiElement)
         {
-            Rectangle rect = new Rectangle
+            var rect = new Rectangle
             {
                 Fill = new VisualBrush(uiElement) { Stretch = Stretch.Uniform },
                 Width = 50,
@@ -72,7 +72,7 @@ namespace Snoop.Infrastructure
 
         private static UIElement CreateRectangleForFrameworkElement(FrameworkElement element)
         {
-            Rectangle rect = new Rectangle
+            var rect = new Rectangle
             {
                 Fill = new VisualBrush(element) { Stretch = Stretch.Uniform }
             };

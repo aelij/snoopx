@@ -11,7 +11,7 @@ namespace Snoop.VisualTree
 {
 	public abstract class ResourceContainerItem : VisualTreeItem
 	{
-		public ResourceContainerItem(object target, VisualTreeItem parent): base(target, parent)
+	    protected ResourceContainerItem(object target, VisualTreeItem parent): base(target, parent)
 		{
 		}
 
@@ -21,12 +21,12 @@ namespace Snoop.VisualTree
 		{
 			base.Reload(toBeRemoved);
 
-			ResourceDictionary resources = ResourceDictionary;
+			var resources = ResourceDictionary;
 
 			if (resources != null && resources.Count != 0)
 			{
-				bool foundItem = false;
-				foreach (VisualTreeItem item in toBeRemoved)
+				var foundItem = false;
+				foreach (var item in toBeRemoved)
 				{
 					if (item.Target == resources)
 					{

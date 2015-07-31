@@ -13,7 +13,7 @@ using System.Windows.Controls;
 
 namespace Snoop.Views
 {
-	public partial class EditUserFilters : Window, INotifyPropertyChanged
+	public partial class EditUserFilters : INotifyPropertyChanged
 	{
 		public EditUserFilters()
 		{
@@ -28,7 +28,7 @@ namespace Snoop.Views
 			get { return _userFilters; }
 			set
 			{
-				if (value != _userFilters)
+				if (!Equals(value, _userFilters))
 				{
 					_userFilters = value;
 					NotifyPropertyChanged("UserFilters");
@@ -78,7 +78,7 @@ namespace Snoop.Views
 			ItemsSource.Add(newSet);
 
 			// select this new item
-			int index = ItemsSource.IndexOf(newSet);
+			var index = ItemsSource.IndexOf(newSet);
 			if (index >= 0)
 			{
 				FilterSetList.SelectedIndex = index;
@@ -95,7 +95,7 @@ namespace Snoop.Views
 
 		private void UpHandler(object sender, RoutedEventArgs e)
 		{
-			int index = FilterSetList.SelectedIndex;
+			var index = FilterSetList.SelectedIndex;
 			if (index <= 0)
 				return;
 
@@ -109,7 +109,7 @@ namespace Snoop.Views
 		}
 		private void DownHandler(object sender, RoutedEventArgs e)
 		{
-			int index = FilterSetList.SelectedIndex;
+			var index = FilterSetList.SelectedIndex;
 			if (index >= ItemsSource.Count - 1)
 				return;
 
@@ -133,7 +133,7 @@ namespace Snoop.Views
 			MoveDown.IsEnabled = false;
 			DeleteItem.IsEnabled = false;
 
-			int index = FilterSetList.SelectedIndex;
+			var index = FilterSetList.SelectedIndex;
 			if (index >= 0)
 			{
 				MoveDown.IsEnabled = true;
@@ -151,8 +151,7 @@ namespace Snoop.Views
 		public event PropertyChangedEventHandler PropertyChanged;
 		protected void NotifyPropertyChanged(string propertyName)
 		{
-			if (PropertyChanged != null)
-				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

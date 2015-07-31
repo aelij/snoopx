@@ -19,12 +19,12 @@ namespace Snoop.Converters
 			if (value == null)
 				return "{null}";
 
-			FrameworkElement fe = value as FrameworkElement;
-			if (fe != null && !String.IsNullOrEmpty(fe.Name))
+			var fe = value as FrameworkElement;
+			if (!string.IsNullOrEmpty(fe?.Name))
 				return fe.Name + " (" + value.GetType().Name + ")";
 
-			RoutedCommand command = value as RoutedCommand;
-			if (command != null && !String.IsNullOrEmpty(command.Name))
+			var command = value as RoutedCommand;
+			if (!string.IsNullOrEmpty(command?.Name))
 				return command.Name + " (" + command.GetType().Name + ")";
 
 			return "(" + value.GetType().Name + ")";

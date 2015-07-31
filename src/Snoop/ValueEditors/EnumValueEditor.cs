@@ -19,11 +19,8 @@ namespace Snoop
 		}
 
 
-		public IList<object> Values
-		{
-			get { return _values; }
-		}
-		private readonly List<object> _values = new List<object>();
+		public IList<object> Values => _values;
+	    private readonly List<object> _values = new List<object>();
 
 
 		protected override void OnTypeChanged()
@@ -34,11 +31,11 @@ namespace Snoop
 
 			_values.Clear();
 
-			Type propertyType = PropertyType;
+			var propertyType = PropertyType;
 			if (propertyType != null)
 			{
-				Array values = Enum.GetValues(propertyType);
-				foreach(object value in values)
+				var values = Enum.GetValues(propertyType);
+				foreach(var value in values)
 				{
 					_values.Add(value);
 

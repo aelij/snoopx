@@ -18,26 +18,26 @@ namespace Snoop.Controls
     {
         public VisualTree3DView(Visual visual)
         {
-            DirectionalLight directionalLight1 = new DirectionalLight(Colors.White, new Vector3D(0, 0, 1));
-            DirectionalLight directionalLight2 = new DirectionalLight(Colors.White, new Vector3D(0, 0, -1));
+            var directionalLight1 = new DirectionalLight(Colors.White, new Vector3D(0, 0, 1));
+            var directionalLight2 = new DirectionalLight(Colors.White, new Vector3D(0, 0, -1));
 
             double z = 0;
-            Model3D model = ConvertVisualToModel3D(visual, ref z);
+            var model = ConvertVisualToModel3D(visual, ref z);
 
-            Model3DGroup group = new Model3DGroup();
+            var group = new Model3DGroup();
             group.Children.Add(directionalLight1);
             group.Children.Add(directionalLight2);
             group.Children.Add(model);
             _zScaleTransform = new ScaleTransform3D();
             group.Transform = _zScaleTransform;
 
-            ModelVisual3D modelVisual = new ModelVisual3D { Content = group };
+            var modelVisual = new ModelVisual3D { Content = group };
 
-            Rect3D bounds = model.Bounds;
+            var bounds = model.Bounds;
             const double fieldOfView = 45;
-            Point3D lookAtPoint = new Point3D(bounds.X + bounds.SizeX / 2, bounds.Y + bounds.SizeY / 2, bounds.Z + bounds.SizeZ / 2);
-            double cameraDistance = 0.5 * bounds.SizeX / Math.Tan(0.5 * fieldOfView * Math.PI / 180);
-            Point3D position = lookAtPoint - new Vector3D(0, 0, cameraDistance);
+            var lookAtPoint = new Point3D(bounds.X + bounds.SizeX / 2, bounds.Y + bounds.SizeY / 2, bounds.Z + bounds.SizeZ / 2);
+            var cameraDistance = 0.5 * bounds.SizeX / Math.Tan(0.5 * fieldOfView * Math.PI / 180);
+            var position = lookAtPoint - new Vector3D(0, 0, cameraDistance);
             Camera camera = new PerspectiveCamera(position, new Vector3D(0, 0, 1), new Vector3D(0, -1, 0), fieldOfView);
 
             _zScaleTransform.CenterZ = lookAtPoint.Z;
@@ -66,8 +66,8 @@ namespace Snoop.Controls
         private Model3D ConvertVisualToModel3D(Visual visual, ref double z)
         {
             Model3D model = null;
-            Rect bounds = VisualTreeHelper.GetContentBounds(visual);
-            Viewport3D viewport = visual as Viewport3D;
+            var bounds = VisualTreeHelper.GetContentBounds(visual);
+            var viewport = visual as Viewport3D;
             if (viewport != null)
             {
                 bounds = new Rect(viewport.RenderSize);
@@ -78,7 +78,7 @@ namespace Snoop.Controls
             }
             if (!bounds.IsEmpty && bounds.Width > 0 && bounds.Height > 0)
             {
-                MeshGeometry3D mesh = new MeshGeometry3D();
+                var mesh = new MeshGeometry3D();
                 mesh.Positions.Add(new Point3D(bounds.Left, bounds.Top, z));
                 mesh.Positions.Add(new Point3D(bounds.Right, bounds.Top, z));
                 mesh.Positions.Add(new Point3D(bounds.Right, bounds.Bottom, z));
@@ -94,8 +94,8 @@ namespace Snoop.Controls
                 mesh.TriangleIndices = new Int32Collection(new[] { 0, 1, 2, 2, 3, 0 });
                 mesh.Freeze();
 
-                Brush brush = MakeBrushFromVisual(visual, bounds);
-                DiffuseMaterial material = new DiffuseMaterial(brush);
+                var brush = MakeBrushFromVisual(visual, bounds);
+                var material = new DiffuseMaterial(brush);
                 material.Freeze();
 
                 model = new GeometryModel3D(mesh, material);
@@ -104,20 +104,20 @@ namespace Snoop.Controls
                 z -= 1;
             }
 
-            int childrenCount = VisualTreeHelper.GetChildrenCount(visual);
+            var childrenCount = VisualTreeHelper.GetChildrenCount(visual);
             if (childrenCount > 0)
             {
-                Model3DGroup group = new Model3DGroup();
+                var group = new Model3DGroup();
                 if (model != null)
                 {
                     group.Children.Add(model);
                 }
-                for (int i = 0; i < childrenCount; i++)
+                for (var i = 0; i < childrenCount; i++)
                 {
-                    Visual childVisual = VisualTreeHelper.GetChild(visual, i) as Visual;
+                    var childVisual = VisualTreeHelper.GetChild(visual, i) as Visual;
                     if (childVisual != null)
                     {
-                        Model3D childModel = ConvertVisualToModel3D(childVisual, ref z);
+                        var childModel = ConvertVisualToModel3D(childVisual, ref z);
                         if (childModel != null)
                         {
                             group.Children.Add(childModel);
@@ -129,13 +129,13 @@ namespace Snoop.Controls
 
             if (model != null)
             {
-                Transform transform = VisualTreeHelper.GetTransform(visual);
-                Matrix matrix = (transform == null ? Matrix.Identity : transform.Value);
-                Vector offset = VisualTreeHelper.GetOffset(visual);
+                var transform = VisualTreeHelper.GetTransform(visual);
+                var matrix = transform?.Value ?? Matrix.Identity;
+                var offset = VisualTreeHelper.GetOffset(visual);
                 matrix.Translate(offset.X, offset.Y);
                 if (!matrix.IsIdentity)
                 {
-                    Matrix3D matrix3D = new Matrix3D(matrix.M11, matrix.M12, 0, 0, matrix.M21, matrix.M22, 0, 0, 0, 0, 1, 0, matrix.OffsetX, matrix.OffsetY, 0, 1);
+                    var matrix3D = new Matrix3D(matrix.M11, matrix.M12, 0, 0, matrix.M21, matrix.M22, 0, 0, 0, 0, 1, 0, matrix.OffsetX, matrix.OffsetY, 0, 1);
                     Transform3D transform3D = new MatrixTransform3D(matrix3D);
                     transform3D.Freeze();
                     model.Transform = transform3D;
@@ -147,7 +147,7 @@ namespace Snoop.Controls
         }
         private Brush MakeBrushFromVisual(Visual visual, Rect bounds)
         {
-            Viewport3D viewport = visual as Viewport3D;
+            var viewport = visual as Viewport3D;
             if (viewport == null)
             {
                 Drawing drawing = VisualTreeHelper.GetDrawing(visual);
@@ -156,12 +156,12 @@ namespace Snoop.Controls
                     bounds.Inflate(_outlinePen.Thickness / 2, _outlinePen.Thickness / 2);
                 }
 
-                Matrix offsetMatrix = new Matrix(1, 0, 0, 1, -bounds.Left, -bounds.Top);
-                MatrixTransform offsetMatrixTransform = new MatrixTransform(offsetMatrix);
+                var offsetMatrix = new Matrix(1, 0, 0, 1, -bounds.Left, -bounds.Top);
+                var offsetMatrixTransform = new MatrixTransform(offsetMatrix);
                 offsetMatrixTransform.Freeze();
 
-                DrawingVisual drawingVisual = new DrawingVisual();
-                DrawingContext drawingContext = drawingVisual.RenderOpen();
+                var drawingVisual = new DrawingVisual();
+                var drawingContext = drawingVisual.RenderOpen();
                 drawingContext.PushTransform(offsetMatrixTransform);
                 if (_drawOutlines)
                 {
@@ -174,7 +174,7 @@ namespace Snoop.Controls
                 visual = drawingVisual;
             }
 
-            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)Math.Ceiling(bounds.Width), (int)Math.Ceiling(bounds.Height), 96, 96, PixelFormats.Default);
+            var renderTargetBitmap = new RenderTargetBitmap((int)Math.Ceiling(bounds.Width), (int)Math.Ceiling(bounds.Height), 96, 96, PixelFormats.Default);
             if (viewport != null)
             {
                 typeof(RenderTargetBitmap).GetMethod("RenderForBitmapEffect", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(renderTargetBitmap,
@@ -185,7 +185,7 @@ namespace Snoop.Controls
                 renderTargetBitmap.Render(visual);
             }
             renderTargetBitmap.Freeze();
-            ImageBrush imageBrush = new ImageBrush(renderTargetBitmap);
+            var imageBrush = new ImageBrush(renderTargetBitmap);
             imageBrush.Freeze();
 
             return imageBrush;

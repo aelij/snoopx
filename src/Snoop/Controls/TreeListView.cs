@@ -37,10 +37,7 @@ namespace Snoop.Controls
 
         public static readonly DependencyProperty ColumnsProperty = ColumnsPropertyKey.DependencyProperty;
 
-        public GridViewColumnCollection Columns
-        {
-            get { return (GridViewColumnCollection)GetValue(ColumnsProperty); }
-        }
+        public GridViewColumnCollection Columns => (GridViewColumnCollection)GetValue(ColumnsProperty);
     }
 
     public class TreeListViewToggleButton : ToggleButton
@@ -80,7 +77,7 @@ namespace Snoop.Controls
                 if (_level == -1)
                 {
                     var parent = ItemsControlFromItemContainer(this) as TreeListViewItem;
-                    _level = (parent != null) ? parent.Level + 1 : 0;
+                    _level = parent?.Level + 1 ?? 0;
                 }
                 return _level;
             }

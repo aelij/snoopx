@@ -26,15 +26,9 @@ namespace Snoop.DebugListenerTab
 			Closed += SetFiltersWindow_Closed;
 		}
 	
-		internal FiltersViewModel ViewModel
-		{
-			get
-			{
-				return DataContext as FiltersViewModel;
-			}
-		}
+		internal FiltersViewModel ViewModel => DataContext as FiltersViewModel;
 
-		private void SetFiltersWindow_Loaded(object sender, RoutedEventArgs e)
+	    private void SetFiltersWindow_Loaded(object sender, RoutedEventArgs e)
 		{
 			SnoopPartsRegistry.AddSnoopVisualTreeRoot(this);
 		}
@@ -65,11 +59,11 @@ namespace Snoop.DebugListenerTab
 		}
 		private void buttonRemoveFilter_Click(object sender, RoutedEventArgs e)
 		{
-			FrameworkElement frameworkElement = sender as FrameworkElement;
+			var frameworkElement = sender as FrameworkElement;
 			if (frameworkElement == null)
 				return;
 
-			SnoopFilter filter = frameworkElement.DataContext as SnoopFilter;
+			var filter = frameworkElement.DataContext as SnoopFilter;
 			if (filter == null)
 				return;
 

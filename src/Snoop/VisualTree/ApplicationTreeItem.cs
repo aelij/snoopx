@@ -18,17 +18,11 @@ namespace Snoop.VisualTree
 			_application = application;
 		}
 
-		public override Visual MainVisual
-		{
-			get { return _application.MainWindow; }
-		}
+		public override Visual MainVisual => _application.MainWindow;
 
-		protected override ResourceDictionary ResourceDictionary
-		{
-			get { return _application.Resources; }
-		}
+	    protected override ResourceDictionary ResourceDictionary => _application.Resources;
 
-		protected override void Reload(List<VisualTreeItem> toBeRemoved)
+	    protected override void Reload(List<VisualTreeItem> toBeRemoved)
 		{
 			// having the call to base.Reload here ... puts the application resources at the very top of the tree view
 			base.Reload(toBeRemoved);
@@ -40,8 +34,8 @@ namespace Snoop.VisualTree
 
 			if (_application.MainWindow != null)
 			{
-				bool foundMainWindow = false;
-				foreach (VisualTreeItem item in toBeRemoved)
+				var foundMainWindow = false;
+				foreach (var item in toBeRemoved)
 				{
 					if (item.Target == _application.MainWindow)
 					{

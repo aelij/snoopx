@@ -29,7 +29,7 @@ namespace Snoop.DebugListenerTab
 		{
 			debugLine = debugLine.ToLower();
 			var text = Text.ToLower();
-			bool filterMatches = false;
+			var filterMatches = false;
 			switch (FilterType)
 			{
 				case FilterType.Contains:

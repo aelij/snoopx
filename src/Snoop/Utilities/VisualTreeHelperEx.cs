@@ -15,69 +15,69 @@ namespace Snoop.Utilities
 		public delegate HitTestFilterBehavior EnumerateTreeFilterCallback(Visual visual, object misc);
 		public delegate HitTestResultBehavior EnumerateTreeResultCallback(Visual visual, object misc);
 
-		public static bool IsFrameworkElementName(this Visual @this, object name)
+		public static bool IsFrameworkElementName(this Visual visual, object name)
 		{
-			var element = @this as FrameworkElement;
+			var element = visual as FrameworkElement;
 			return element != null && string.CompareOrdinal(element.Name, (string)name) == 0;
 		}
 
-		public static bool IsFrameworkElementTemplatedChild(this Visual @this, object templatedParent)
+		public static bool IsFrameworkElementTemplatedChild(this Visual visual, object templatedParent)
 		{
-			var element = @this as FrameworkElement;
+			var element = visual as FrameworkElement;
 			return element != null && ReferenceEquals(element.TemplatedParent, templatedParent);
 		}
 
-		public static void EnumerateTree(this Visual @this, EnumerateTreeFilterCallback filterCallback, EnumerateTreeResultCallback enumeratorCallback, object misc)
+		public static void EnumerateTree(this Visual visual, EnumerateTreeFilterCallback filterCallback, EnumerateTreeResultCallback enumeratorCallback, object misc)
 		{
-		    if (@this == null)
+		    if (visual == null)
 			{
-				throw new ArgumentNullException("this");
+				throw new ArgumentNullException(nameof(visual));
 			}
-		    DoEnumerateTree(@this, filterCallback, enumeratorCallback, misc);
+		    DoEnumerateTree(visual, filterCallback, enumeratorCallback, misc);
 		}
 
-	    public static T GetAncestor<T>(this Visual @this, Visual root, Func<Visual, object, bool> predicate, object param)
+	    public static T GetAncestor<T>(this Visual visual, Visual root, Func<Visual, object, bool> predicate, object param)
 			where T : Visual
 		{
-			T result = @this as T;
-			while (@this != null && !ReferenceEquals(@this, root) && 
+			var result = visual as T;
+			while (visual != null && !ReferenceEquals(visual, root) && 
                 (result == null || (predicate != null && !predicate(result, param))))
 			{
-				@this = (Visual)VisualTreeHelper.GetParent(@this);
-				result = @this as T;
+				visual = (Visual)VisualTreeHelper.GetParent(visual);
+				result = visual as T;
 			}
 			return result;
 		}
 
-		public static T GetAncestor<T>(Visual @this, Visual root, Func<Visual, object, bool> predicate) where T : Visual
+		public static T GetAncestor<T>(Visual visual, Visual root, Func<Visual, object, bool> predicate) where T : Visual
 		{
-			return GetAncestor<T>(@this, root, predicate, null);
+			return GetAncestor<T>(visual, root, predicate, null);
 		}
 
-		public static T GetAncestor<T>(this Visual @this, Visual root) where T : Visual
+		public static T GetAncestor<T>(this Visual visual, Visual root) where T : Visual
 		{
-			return GetAncestor<T>(@this, root, null, null);
+			return GetAncestor<T>(visual, root, null, null);
 		}
 
-		public static T GetAncestor<T>(this Visual @this) where T : Visual
+		public static T GetAncestor<T>(this Visual visual) where T : Visual
 		{
-			return GetAncestor<T>(@this, null, null, null);
+			return GetAncestor<T>(visual, null, null, null);
 		}
 
 		private static bool DoEnumerateTree(Visual reference, EnumerateTreeFilterCallback filterCallback, EnumerateTreeResultCallback enumeratorCallback, object misc)
 		{
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(reference); ++i)
+			for (var i = 0; i < VisualTreeHelper.GetChildrenCount(reference); ++i)
 			{
-				Visual child = (Visual)VisualTreeHelper.GetChild(reference, i);
+				var child = (Visual)VisualTreeHelper.GetChild(reference, i);
 
-				HitTestFilterBehavior filterResult = HitTestFilterBehavior.Continue;
+				var filterResult = HitTestFilterBehavior.Continue;
 				if (filterCallback != null)
 				{
 					filterResult = filterCallback(child, misc);
 				}
 
-				bool enumerateSelf = true;
-				bool enumerateChildren = true;
+				var enumerateSelf = true;
+				var enumerateChildren = true;
 
 				switch (filterResult)
 				{

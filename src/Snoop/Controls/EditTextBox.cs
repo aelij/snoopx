@@ -32,11 +32,8 @@ namespace Snoop.Controls
 			if (e.Key == Key.Return)
 			{
 				var expression = BindingOperations.GetBindingExpressionBase(this, TextProperty);
-				if (expression != null)
-				{
-					expression.UpdateSource();
-				}
-				e.Handled = true;
+			    expression?.UpdateSource();
+			    e.Handled = true;
 			}
 			base.OnKeyDown(e);
 		}

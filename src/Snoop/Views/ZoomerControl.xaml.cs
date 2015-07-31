@@ -65,7 +65,7 @@ namespace Snoop.Views
 
             Cursor = Cursors.SizeAll;
 
-            UIElement element = CreateIfPossible(Target);
+            var element = CreateIfPossible(Target);
             if (element != null)
                 Viewbox.Child = element;
         }
@@ -81,7 +81,7 @@ namespace Snoop.Views
         {
             if (IsValidTarget && DocumentRoot.IsMouseCaptured)
             {
-                Vector delta = e.GetPosition(DocumentRoot) - _downPoint;
+                var delta = e.GetPosition(DocumentRoot) - _downPoint;
                 _translation.X += delta.X;
                 _translation.Y += delta.Y;
 
@@ -98,8 +98,8 @@ namespace Snoop.Views
         {
             if (IsValidTarget)
             {
-                double zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
-                Point offset = e.GetPosition(Viewbox);
+                var zoom = Math.Pow(ZoomFactor, e.Delta / 120.0);
+                var offset = e.GetPosition(Viewbox);
                 Zoom(zoom, offset);
             }
         }
@@ -120,9 +120,9 @@ namespace Snoop.Views
 
         private void Zoom(double zoom, Point offset)
         {
-            Vector v = new Vector((1 - zoom) * offset.X, (1 - zoom) * offset.Y);
+            var v = new Vector((1 - zoom) * offset.X, (1 - zoom) * offset.Y);
 
-            Vector translationVector = v * _transform.Value;
+            var translationVector = v * _transform.Value;
             _translation.X += translationVector.X;
             _translation.Y += translationVector.Y;
 
@@ -130,10 +130,7 @@ namespace Snoop.Views
             _zoom.ScaleY = _zoom.ScaleY * zoom;
         }
 
-        private bool IsValidTarget
-        {
-            get { return Target != null; }
-        }
+        private bool IsValidTarget => Target != null;
 
         private readonly TranslateTransform _translation = new TranslateTransform();
         private readonly ScaleTransform _zoom = new ScaleTransform();

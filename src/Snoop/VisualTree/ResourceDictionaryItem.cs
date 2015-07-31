@@ -26,7 +26,7 @@ namespace Snoop.VisualTree
 		{
 			base.Reload(toBeRemoved);
 
-			foreach (object key in _dictionary.Keys)
+			foreach (var key in _dictionary.Keys)
 			{
 				object target;
 				try
@@ -48,8 +48,8 @@ namespace Snoop.VisualTree
 					continue;
 				}
 
-				bool foundItem = false;
-				foreach (VisualTreeItem item in toBeRemoved)
+				var foundItem = false;
+				foreach (var item in toBeRemoved)
 				{
 					if (item.Target == target)
 					{

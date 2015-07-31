@@ -14,7 +14,7 @@ namespace Snoop.Converters
             if (!(value is FilterType))
                 return value;
 
-            FilterType filterType = (FilterType)value;
+            var filterType = (FilterType)value;
             return (int)filterType;
         }
 
@@ -23,7 +23,7 @@ namespace Snoop.Converters
             if (!(value is int))
                 return value;
 
-            int intValue = (int)value;
+            var intValue = (int)value;
             return (FilterType)intValue;
         }
     }

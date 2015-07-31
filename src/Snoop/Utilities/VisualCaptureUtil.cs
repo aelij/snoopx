@@ -28,7 +28,7 @@ namespace Snoop.Utilities
 		        ? new Rect(new Size((int) uiElement.RenderSize.Width, (int) uiElement.RenderSize.Height))
 		        : VisualTreeHelper.GetDescendantBounds(visual);
 
-			double sizeFactor = dpi / BaseDpi;
+			var sizeFactor = dpi / BaseDpi;
 			
             var renderTargetBitmap =
 				new RenderTargetBitmap

@@ -30,7 +30,7 @@ namespace Snoop.Views
 		public AppChooser()
 		{
 		    _windows = new ObservableCollection<WindowInfo>();
-		    _windowsView = CollectionViewSource.GetDefaultView(_windows);
+		    Windows = CollectionViewSource.GetDefaultView(_windows);
 
 			InitializeComponent();
 
@@ -46,12 +46,9 @@ namespace Snoop.Views
 		public static readonly RoutedCommand MagnifyCommand = new RoutedCommand();
 		public static readonly RoutedCommand MinimizeCommand = new RoutedCommand();
 
-		public ICollectionView Windows
-		{
-			get { return _windowsView; }
-		}
-		private readonly ICollectionView _windowsView;
-		private readonly ObservableCollection<WindowInfo> _windows;
+		public ICollectionView Windows { get; }
+
+	    private readonly ObservableCollection<WindowInfo> _windows;
 
 		public void Refresh()
 		{
@@ -66,9 +63,9 @@ namespace Snoop.Views
 					{
 						Mouse.OverrideCursor = Cursors.Wait;
 
-						foreach (IntPtr windowHandle in NativeMethods.ToplevelWindows)
+						foreach (var windowHandle in NativeMethods.ToplevelWindows)
 						{
-							WindowInfo window = new WindowInfo(windowHandle);
+							var window = new WindowInfo(windowHandle);
 							if (window.IsValidProcess && !this.HasProcess(window.OwningProcess))
 							{
 								new AttachFailedHandler(window, this);
@@ -93,11 +90,11 @@ namespace Snoop.Views
 			try
 			{
 				// load the window placement details from the user settings.
-				WindowPlacement wp = Settings.Default.AppChooserWindowPlacement;
+				var wp = Settings.Default.AppChooserWindowPlacement;
 				wp.Length = Marshal.SizeOf(typeof(WindowPlacement));
 				wp.Flags = 0;
 				wp.WindowState = (wp.WindowState == NativeMethods.SW_SHOWMINIMIZED ? NativeMethods.SW_SHOWNORMAL : wp.WindowState);
-				IntPtr hwnd = new WindowInteropHelper(this).Handle;
+				var hwnd = new WindowInteropHelper(this).Handle;
 				NativeMethods.SetWindowPlacement(hwnd, ref wp);
 			}
 			catch
@@ -112,7 +109,7 @@ namespace Snoop.Views
 
 			// persist the window placement details to the user settings.
 			WindowPlacement wp;
-			IntPtr hwnd = new WindowInteropHelper(this).Handle;
+			var hwnd = new WindowInteropHelper(this).Handle;
 			NativeMethods.GetWindowPlacement(hwnd, out wp);
 			Settings.Default.AppChooserWindowPlacement = wp;
 			Settings.Default.Save();
@@ -125,23 +122,21 @@ namespace Snoop.Views
 
 	    private void HandleCanInspectOrMagnifyCommand(object sender, CanExecuteRoutedEventArgs e)
 		{
-			if (_windowsView.CurrentItem != null)
+			if (Windows.CurrentItem != null)
 				e.CanExecute = true;
 			e.Handled = true;
 		}
 
 		private void HandleInspectCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			WindowInfo window = (WindowInfo)_windowsView.CurrentItem;
-			if (window != null)
-				window.Snoop();
+			var window = (WindowInfo)Windows.CurrentItem;
+		    window?.Snoop();
 		}
 
 		private void HandleMagnifyCommand(object sender, ExecutedRoutedEventArgs e)
 		{
-			WindowInfo window = (WindowInfo)_windowsView.CurrentItem;
-			if (window != null)
-				window.Magnify();
+			var window = (WindowInfo)Windows.CurrentItem;
+		    window?.Magnify();
 		}
 
 		private void HandleRefreshCommand(object sender, ExecutedRoutedEventArgs e)
@@ -174,8 +169,8 @@ namespace Snoop.Views
 
     public class AttachFailedEventArgs : EventArgs
 	{
-		public Exception AttachException { get; private set; }
-		public string WindowName { get; private set; }
+		public Exception AttachException { get; }
+		public string WindowName { get; }
 
 		public AttachFailedEventArgs(Exception attachException, string windowName)
 		{
@@ -196,20 +191,11 @@ namespace Snoop.Views
 		{
 			MessageBox.Show
 			(
-				string.Format
-				(
-					"Failed to attach to {0}. Exception occured:{1}{2}",
-					e.WindowName,
-					Environment.NewLine,
-					e.AttachException
-				),
+			    $"Failed to attach to {e.WindowName}. Exception occured:{Environment.NewLine}{e.AttachException}",
 				"Can't Snoop the process!"
 			);
-			if (_appChooser != null)
-			{
-				// TODO This should be implmemented through the event broker, not like this.
-				_appChooser.Refresh();
-			}
+		    // TODO This should be implmemented through the event broker, not like this.
+		    _appChooser?.Refresh();
 		}
 
 		private readonly AppChooser _appChooser;

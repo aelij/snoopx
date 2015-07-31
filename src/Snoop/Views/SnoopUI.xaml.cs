@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -23,6 +24,9 @@ using Snoop.Infrastructure;
 using Snoop.Properties;
 using Snoop.Utilities;
 using Snoop.VisualTree;
+using Application = System.Windows.Application;
+using Cursors = System.Windows.Input.Cursors;
+using MessageBox = System.Windows.MessageBox;
 
 namespace Snoop.Views
 {
@@ -38,7 +42,7 @@ namespace Snoop.Views
         public static readonly RoutedCommand SelectFocusScopeCommand = new RoutedCommand("SelectFocusScope", typeof(SnoopUI));
         public static readonly RoutedCommand ClearSearchFilterCommand = new RoutedCommand("ClearSearchFilter", typeof(SnoopUI));
         public static readonly RoutedCommand CopyPropertyChangesCommand = new RoutedCommand("CopyPropertyChanges", typeof(SnoopUI));
-       
+
         #endregion
 
         #region Static Constructor
@@ -111,32 +115,63 @@ namespace Snoop.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("There was an error snooping! Message = {0}\n\nStack Trace:\n{1}", ex.Message, ex.StackTrace), "Error Snooping", MessageBoxButton.OK);
+                MessageBox.Show(
+                    $"There was an error snooping! Message = {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error Snooping", MessageBoxButton.OK);
                 return false;
             }
         }
 
         public static void SnoopApplication()
         {
-            var dispatcher = Application.Current == null ? Dispatcher.CurrentDispatcher : Application.Current.Dispatcher;
+            var dispatcher = FindDispatcher();
 
-            if (dispatcher.CheckAccess())
+            if (dispatcher?.CheckAccess() == true)
             {
-                SnoopUI snoop = new SnoopUI();
-                var title = TryGetMainWindowTitle();
-                if (!string.IsNullOrEmpty(title))
-                {
-                    snoop.Title = string.Format("{0} - SnoopX", title);
-                }
-
-                snoop.Inspect();
-
                 CheckForOtherDispatchers(dispatcher);
+
+                LaunchSnoopApplicationOnDispatcher();
             }
             else
             {
-                dispatcher.Invoke(SnoopApplication);
+                bool created = false;
+                if (dispatcher == null)
+                {
+                    dispatcher = Dispatcher.CurrentDispatcher;
+                    created = true;
+                }
+                dispatcher.InvokeAsync(LaunchSnoopApplicationOnDispatcher);
+                if (created)
+                {
+                    Dispatcher.Run();
+                }
             }
+        }
+
+        private static void LaunchSnoopApplicationOnDispatcher()
+        {
+            var snoop = new SnoopUI();
+            var title = TryGetMainWindowTitle();
+            if (!string.IsNullOrEmpty(title))
+            {
+                snoop.Title = $"{title} - SnoopX";
+            }
+
+            snoop.Inspect();
+        }
+
+        private static Dispatcher FindDispatcher()
+        {
+            if (Application.Current != null)
+            {
+                return Application.Current.Dispatcher;
+            }
+            if (System.Windows.Forms.Application.OpenForms.Count > 0)
+            {
+                return (Dispatcher)System.Windows.Forms.Application.OpenForms[0].Invoke(
+                        new Func<Dispatcher>(() => Dispatcher.CurrentDispatcher));
+            }
+            var source = PresentationSource.CurrentSources.OfType<PresentationSource>().FirstOrDefault();
+            return source?.Dispatcher;
         }
 
         private static void CheckForOtherDispatchers(Dispatcher mainDispatcher)
@@ -150,12 +185,12 @@ namespace Snoop.Views
             var dispatchers = new List<Dispatcher> { mainDispatcher };
             foreach (PresentationSource presentationSource in PresentationSource.CurrentSources)
             {
-                Visual presentationSourceRootVisual = presentationSource.RootVisual;
+                var presentationSourceRootVisual = presentationSource.RootVisual;
 
                 if (!(presentationSourceRootVisual is Window))
                     continue;
 
-                Dispatcher presentationSourceRootVisualDispatcher = presentationSourceRootVisual.Dispatcher;
+                var presentationSourceRootVisualDispatcher = presentationSourceRootVisual.Dispatcher;
 
                 if (dispatchers.IndexOf(presentationSourceRootVisualDispatcher) == -1)
                 {
@@ -181,7 +216,7 @@ namespace Snoop.Views
                 if (result == MessageBoxResult.Yes)
                 {
                     SnoopModes.MultipleDispatcherMode = true;
-                    Thread thread = new Thread(DispatchOut);
+                    var thread = new Thread(DispatchOut);
                     thread.Start(rootVisuals);
                 }
             }
@@ -189,7 +224,7 @@ namespace Snoop.Views
 
         private static void DispatchOut(object o)
         {
-            List<Visual> visuals = (List<Visual>)o;
+            var visuals = (List<Visual>)o;
             foreach (var visual in visuals)
             {
                 visual.Dispatcher.Invoke(() =>
@@ -205,14 +240,11 @@ namespace Snoop.Views
         #region Public Properties
 
         #region VisualTreeItems
-        
+
         /// <summary>
         /// This is the collection of VisualTreeItem(s) that the visual tree TreeView binds to.
         /// </summary>
-        public ObservableCollection<VisualTreeItem> VisualTreeItems
-        {
-            get { return _visualTreeItems; }
-        }
+        public ObservableCollection<VisualTreeItem> VisualTreeItems { get; } = new ObservableCollection<VisualTreeItem>();
 
         #endregion
 
@@ -266,14 +298,14 @@ namespace Snoop.Views
                     }
 
                     OnPropertyChanged();
-                    OnPropertyChanged("CurrentFocusScope");
+                    OnPropertyChanged(nameof(CurrentFocusScope));
 
-                    if (_visualTreeItems.Count > 1 || _visualTreeItems.Count == 1 && _visualTreeItems[0] != _rootVisualTreeItem)
+                    if (VisualTreeItems.Count > 1 || VisualTreeItems.Count == 1 && VisualTreeItems[0] != _rootVisualTreeItem)
                     {
                         // Check whether the selected item is filtered out by the filter,
                         // in which case reset the filter.
-                        VisualTreeItem tmp = _currentSelection;
-                        while (tmp != null && !_visualTreeItems.Contains(tmp))
+                        var tmp = _currentSelection;
+                        while (tmp != null && !VisualTreeItems.Contains(tmp))
                         {
                             tmp = tmp.Parent;
                         }
@@ -309,9 +341,7 @@ namespace Snoop.Views
 
         private void SetFilter(string value)
         {
-            _fromTextBox = false;
             Filter = value;
-            _fromTextBox = true;
         }
 
         private string _filter = string.Empty;
@@ -352,10 +382,7 @@ namespace Snoop.Views
         {
             get
             {
-                if (CurrentSelection == null)
-                    return null;
-
-                var selectedItem = CurrentSelection.Target as DependencyObject;
+                var selectedItem = CurrentSelection?.Target as DependencyObject;
                 if (selectedItem != null)
                 {
                     return FocusManager.GetFocusScope(selectedItem);
@@ -370,7 +397,7 @@ namespace Snoop.Views
         #region Public Methods
         public void Inspect()
         {
-            object localRoot = FindRoot();
+            var localRoot = FindRoot();
             if (localRoot == null)
             {
                 if (!SnoopModes.MultipleDispatcherMode)
@@ -391,7 +418,7 @@ namespace Snoop.Views
             }
             Load(localRoot);
 
-            Window ownerWindow = SnoopWindowUtils.FindOwnerWindow();
+            var ownerWindow = SnoopWindowUtils.FindOwnerWindow();
             if (ownerWindow != null)
             {
                 if (ownerWindow.Dispatcher != Dispatcher)
@@ -452,24 +479,17 @@ namespace Snoop.Views
 
         public void ApplyReduceDepthFilter(VisualTreeItem newRoot)
         {
-            if (_reducedDepthRoot != newRoot)
+            if (_reducedDepthRoot == newRoot) return;
+            if (_reducedDepthRoot == null)
             {
-                if (_reducedDepthRoot == null)
+                Dispatcher.InvokeAsync(() =>
                 {
-                    Dispatcher.BeginInvoke
-                    (
-                        DispatcherPriority.Background,
-                        (Action)
-                        delegate
-                        {
-                            this._visualTreeItems.Clear();
-                            this._visualTreeItems.Add(_reducedDepthRoot);
-                            _reducedDepthRoot = null;
-                        }
-                    );
-                }
-                _reducedDepthRoot = newRoot;
+                    VisualTreeItems.Clear();
+                    VisualTreeItems.Add(_reducedDepthRoot);
+                    _reducedDepthRoot = null;
+                }, DispatcherPriority.Background);
             }
+            _reducedDepthRoot = newRoot;
         }
 
 
@@ -480,7 +500,7 @@ namespace Snoop.Views
         /// <param name="owningObject">currently selected object that owns the properties in the grid (before changing selection to the new object)</param>
         private void SaveEditedProperties(VisualTreeItem owningObject)
         {
-            foreach (PropertyInformation property in PropertyGrid.PropertyGrid.Properties)
+            foreach (var property in PropertyGrid.PropertyGrid.Properties)
             {
                 if (property.IsValueChangedByUser)
                 {
@@ -499,11 +519,11 @@ namespace Snoop.Views
             try
             {
                 // load the window placement details from the user settings.
-                WindowPlacement wp = Settings.Default.SnoopUIWindowPlacement;
+                var wp = Settings.Default.SnoopUIWindowPlacement;
                 wp.Length = Marshal.SizeOf(typeof(WindowPlacement));
                 wp.Flags = 0;
                 wp.WindowState = (wp.WindowState == NativeMethods.SW_SHOWMINIMIZED ? NativeMethods.SW_SHOWNORMAL : wp.WindowState);
-                IntPtr hwnd = new WindowInteropHelper(this).Handle;
+                var hwnd = new WindowInteropHelper(this).Handle;
                 NativeMethods.SetWindowPlacement(hwnd, ref wp);
 
                 // load whether all properties are shown by default
@@ -542,7 +562,7 @@ namespace Snoop.Views
 
             // persist the window placement details to the user settings.
             WindowPlacement wp;
-            IntPtr hwnd = new WindowInteropHelper(this).Handle;
+            var hwnd = new WindowInteropHelper(this).Handle;
             NativeMethods.GetWindowPlacement(hwnd, out wp);
             Settings.Default.SnoopUIWindowPlacement = wp;
 
@@ -583,19 +603,19 @@ namespace Snoop.Views
         }
         private void HandleRefresh(object sender, ExecutedRoutedEventArgs e)
         {
-            Cursor saveCursor = Mouse.OverrideCursor;
+            var saveCursor = Mouse.OverrideCursor;
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                object currentTarget = CurrentSelection != null ? CurrentSelection.Target : null;
+                var currentTarget = CurrentSelection?.Target;
 
-                _visualTreeItems.Clear();
+                VisualTreeItems.Clear();
 
                 Root = VisualTreeItem.Construct(_root, null);
 
                 if (currentTarget != null)
                 {
-                    VisualTreeItem visualItem = FindItem(currentTarget);
+                    var visualItem = FindItem(currentTarget);
                     if (visualItem != null)
                         CurrentSelection = visualItem;
                 }
@@ -610,10 +630,10 @@ namespace Snoop.Views
 
         private void HandleInspect(object sender, ExecutedRoutedEventArgs e)
         {
-            Visual visual = e.Parameter as Visual;
+            var visual = e.Parameter as Visual;
             if (visual != null)
             {
-                VisualTreeItem node = FindItem(visual);
+                var node = FindItem(visual);
                 if (node != null)
                     CurrentSelection = node;
             }
@@ -628,7 +648,7 @@ namespace Snoop.Views
             _returnPreviousFocus = true;
             SelectItem(CurrentFocus as DependencyObject);
             _returnPreviousFocus = false;
-            OnPropertyChanged("CurrentFocus");
+            OnPropertyChanged(nameof(CurrentFocus));
         }
 
         private void HandleSelectFocusScope(object sender, ExecutedRoutedEventArgs e)
@@ -653,7 +673,7 @@ namespace Snoop.Views
         {
             if (item != null)
             {
-                VisualTreeItem node = FindItem(item);
+                var node = FindItem(item);
                 if (node != null)
                     CurrentSelection = node;
             }
@@ -666,11 +686,11 @@ namespace Snoop.Views
 
         private void HandlePreProcessInput(object sender, PreProcessInputEventArgs e)
         {
-            OnPropertyChanged("CurrentFocus");
+            OnPropertyChanged(nameof(CurrentFocus));
 
             if (!_stickyInputTimer.IsRunning)
             {
-                ModifierKeys currentModifiers = InputManager.Current.PrimaryKeyboardDevice.Modifiers;
+                var currentModifiers = InputManager.Current.PrimaryKeyboardDevice.Modifiers;
                 if (!((currentModifiers & ModifierKeys.Control) != 0 && (currentModifiers & ModifierKeys.Shift) != 0))
                     return;
                 if ((currentModifiers & ModifierKeys.Alt) != 0)
@@ -684,11 +704,11 @@ namespace Snoop.Views
                 _stickyInputTimer.Stop();
             }
 
-            Visual directlyOver = Mouse.PrimaryDevice.DirectlyOver as Visual;
+            var directlyOver = Mouse.PrimaryDevice.DirectlyOver as Visual;
             if ((directlyOver == null) || directlyOver.IsDescendantOf(this))
                 return;
 
-            VisualTreeItem node = FindItem(directlyOver);
+            var node = FindItem(directlyOver);
             if (node != null)
                 CurrentSelection = node;
         }
@@ -707,11 +727,11 @@ namespace Snoop.Views
         /// </summary>
         private VisualTreeItem FindItem(object target)
         {
-            VisualTreeItem node = _rootVisualTreeItem.FindNode(target);
-            Visual rootVisual = _rootVisualTreeItem.MainVisual;
+            var node = _rootVisualTreeItem.FindNode(target);
+            var rootVisual = _rootVisualTreeItem.MainVisual;
             if (node == null)
             {
-                Visual visual = target as Visual;
+                var visual = target as Visual;
                 if (visual != null && rootVisual != null)
                 {
                     // If target is a part of the SnoopUI, let's get out of here.
@@ -753,7 +773,7 @@ namespace Snoop.Views
 
         private void HandleTreeSelectedItemChanged(object sender, EventArgs e)
         {
-            VisualTreeItem item = Tree.SelectedItem as VisualTreeItem;
+            var item = Tree.SelectedItem as VisualTreeItem;
             if (item != null)
                 CurrentSelection = item;
         }
@@ -767,7 +787,7 @@ namespace Snoop.Views
                 return;
             }
 
-            _visualTreeItems.Clear();
+            VisualTreeItems.Clear();
 
             // cplotts todo: we've got to come up with a better way to do this.
             if (_filter == "Clear any filter applied to the tree view")
@@ -780,7 +800,7 @@ namespace Snoop.Views
             }
             else if (_filter.Length == 0)
             {
-                _visualTreeItems.Add(_rootVisualTreeItem);
+                VisualTreeItems.Add(_rootVisualTreeItem);
             }
             else
             {
@@ -790,10 +810,10 @@ namespace Snoop.Views
 
         private void FilterTree(VisualTreeItem node, string localFilter)
         {
-            foreach (VisualTreeItem child in node.Children)
+            foreach (var child in node.Children)
             {
                 if (child.Filter(localFilter))
-                    _visualTreeItems.Add(child);
+                    VisualTreeItems.Add(child);
                 else
                     FilterTree(child, localFilter);
             }
@@ -801,10 +821,10 @@ namespace Snoop.Views
 
         private void FilterBindings(VisualTreeItem node)
         {
-            foreach (VisualTreeItem child in node.Children)
+            foreach (var child in node.Children)
             {
                 if (child.HasBindingError)
-                    _visualTreeItems.Add(child);
+                    VisualTreeItems.Add(child);
                 else
                     FilterBindings(child);
             }
@@ -830,18 +850,18 @@ namespace Snoop.Views
             {
                 rootVisual = Application.Current;
             }
+
             else
             {
                 // if we don't have a current application,
                 // then we must be in an interop scenario (win32 -> wpf or windows forms -> wpf).
-
 
                 // in this case, let's iterate over PresentationSource.CurrentSources,
                 // and use the first non-null, visible RootVisual we find as root to inspect.
                 foreach (PresentationSource presentationSource in PresentationSource.CurrentSources)
                 {
                     var visual = presentationSource.RootVisual as UIElement;
-                    if (visual != null && visual.Visibility == Visibility.Visible)
+                    if (visual != null && visual.Visibility == Visibility.Visible && !ReferenceEquals(visual, this))
                     {
                         rootVisual = presentationSource.RootVisual;
                         break;
@@ -856,6 +876,11 @@ namespace Snoop.Views
                     // to receive keyboard messages. if you don't call this method,
                     // you will be unable to edit properties in the property grid for windows forms interop.
                     ElementHost.EnableModelessKeyboardInterop(this);
+
+                    if (rootVisual == null)
+                    {
+                        rootVisual = System.Windows.Forms.Application.OpenForms[0];
+                    }
                 }
             }
 
@@ -866,22 +891,19 @@ namespace Snoop.Views
         {
             _root = localRoot;
 
-            _visualTreeItems.Clear();
+            VisualTreeItems.Clear();
 
             Root = VisualTreeItem.Construct(localRoot, null);
             CurrentSelection = _rootVisualTreeItem;
 
             SetFilter(_filter);
 
-            OnPropertyChanged("Root");
+            OnPropertyChanged(nameof(Root));
         }
 
         #endregion
 
         #region Private Fields
-        private bool _fromTextBox = true;
-
-        private readonly ObservableCollection<VisualTreeItem> _visualTreeItems = new ObservableCollection<VisualTreeItem>();
 
         private string _eventFilter = string.Empty;
 
@@ -907,8 +929,7 @@ namespace Snoop.Views
         [NotifyPropertyChangedInvocator]
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            var handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion

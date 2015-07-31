@@ -27,15 +27,15 @@ namespace Snoop.ValueEditors
 
 		private void MouseWheelHandler(object sender, MouseWheelEventArgs e)
 		{
-			FrameworkElement fe = e.OriginalSource as FrameworkElement;
+			var fe = e.OriginalSource as FrameworkElement;
 			if (fe == null)
 			{
 				return;
 			}
 
-			bool increment = true;
-			bool largeIncrement = false;
-			bool tinyIncrement = false;
+			var increment = true;
+			var largeIncrement = false;
+			var tinyIncrement = false;
 
 			if (e.Delta > 0)
 			{
@@ -57,7 +57,7 @@ namespace Snoop.ValueEditors
 			var tb = fe as TextBlock;
 			if (tb != null)
 			{
-				int fieldNum = Int32.Parse(tb.Tag.ToString());
+				var fieldNum = int.Parse(tb.Tag.ToString());
 
 				switch (PropertyInfo.Property.PropertyType.Name)
 				{
@@ -107,7 +107,7 @@ namespace Snoop.ValueEditors
 
 		private string ChangeIntValue(string current, bool increase, bool largeIncrement)
 		{
-			int change = 1;
+			var change = 1;
 			if (!increase)
 			{
 				change *= -1;
@@ -117,7 +117,7 @@ namespace Snoop.ValueEditors
 				change *= 10;
 			}
 
-			int ret = Int32.Parse(current);
+			var ret = int.Parse(current);
 			ret = ret + change;
 
 			return ret.ToString();
@@ -139,7 +139,7 @@ namespace Snoop.ValueEditors
 				change /= 10;
 			}
 
-			double ret = Double.Parse(current);
+			var ret = double.Parse(current);
 			ret = ret + change;
 
 			return ret.ToString();
@@ -147,7 +147,7 @@ namespace Snoop.ValueEditors
 
 		private string ChangeBooleanValue(string current)
 		{
-			bool ret = Boolean.Parse(current);
+			var ret = bool.Parse(current);
 			ret = !ret;
 
 			return ret.ToString();
@@ -155,10 +155,10 @@ namespace Snoop.ValueEditors
 
 		private string ChangeEnumValue<T>(string current, bool increase)
 		{
-			T ret = (T)Enum.Parse(typeof(T), current);
+			var ret = (T)Enum.Parse(typeof(T), current);
 
 			// make numeric, so we can add or subtract one
-			int value = Convert.ToInt32(ret);
+			var value = Convert.ToInt32(ret);
 			if (increase)
 			{
 				value += 1;
@@ -181,7 +181,7 @@ namespace Snoop.ValueEditors
 		/// </summary>
 		private void ChangeThicknessValuePart(int fieldNum, string current, bool increase, bool largeIncrement)
 		{
-			int change = 1;
+			var change = 1;
 			if (!increase)
 			{
 				change *= -1;
@@ -191,20 +191,20 @@ namespace Snoop.ValueEditors
 				change *= 20;
 			}
 
-			int newVal = Int32.Parse(current);
+			var newVal = int.Parse(current);
 			newVal = newVal + change;
 
-			string partValue = newVal.ToString();
-			string currentValue = PropertyInfo.StringValue;
+			var partValue = newVal.ToString();
+			var currentValue = PropertyInfo.StringValue;
 
 			// chop the current value up into its parts
-			string[] fields = currentValue.Split(',');
+			var fields = currentValue.Split(',');
 
 			// replace the appropriate field
 			fields[fieldNum - 1] = partValue;
 
 			// re-assemble back to Brush value
-			string newValue = String.Format(@"{0},{1},{2},{3}", fields[0], fields[1], fields[2], fields[3]);
+			string newValue = $@"{fields[0]},{fields[1]},{fields[2]},{fields[3]}";
 
 			PropertyInfo.StringValue = newValue;
 		}
@@ -215,7 +215,7 @@ namespace Snoop.ValueEditors
 		/// </summary>
 		private void ChangeBrushValuePart(int fieldNum, string current, bool increase, bool largeIncrement)
 		{
-			int change = 1;
+			var change = 1;
 			if (!increase)
 			{
 				change *= -1;
@@ -225,14 +225,14 @@ namespace Snoop.ValueEditors
 				change *= 16;
 			}
 
-			int ret = Int32.Parse(current, NumberStyles.HexNumber);
+			var ret = int.Parse(current, NumberStyles.HexNumber);
 			ret = Math.Min(255, Math.Max(0, ret + change));
 
-			string partValue = ret.ToString("X2");
-			string currentValue = PropertyInfo.StringValue;
+			var partValue = ret.ToString("X2");
+			var currentValue = PropertyInfo.StringValue;
 
 			// chop the current value up into its parts
-			string[] fields = new string[4];
+			var fields = new string[4];
 			fields[0] = currentValue.Substring(1, 2);	// start at 1 to skip the leading # sign
 			fields[1] = currentValue.Substring(3, 2);
 			fields[2] = currentValue.Substring(5, 2);
@@ -242,18 +242,12 @@ namespace Snoop.ValueEditors
 			fields[fieldNum - 1] = partValue;
 
 			// re-assemble back to Brush value
-			string newValue = String.Format(@"#{0}{1}{2}{3}", fields[0], fields[1], fields[2], fields[3]);
+			string newValue = $@"#{fields[0]}{fields[1]}{fields[2]}{fields[3]}";
 
 			PropertyInfo.StringValue = newValue;
 		}
 
 
-		private PropertyInformation PropertyInfo
-		{
-			get
-			{
-				return DataContext as PropertyInformation;
-			}
-		}
+		private PropertyInformation PropertyInfo => DataContext as PropertyInformation;
 	}
 }

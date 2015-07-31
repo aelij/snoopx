@@ -299,6 +299,7 @@
     <Compile Include="Controls\ProperTreeView.cs" />
     <Compile Include="PropertyFilter.cs" />
     <Compile Include="PropertyInformation.cs" />
+    <Compile Include="VisualTree\FormsTreeItem.cs" />
     <Compile Include="VisualTree\ResourceContainerItem.cs" />
     <Compile Include="VisualTree\ResourceDictionaryItem.cs" />
     <Compile Include="Views\ScreenshotDialog.xaml.cs">

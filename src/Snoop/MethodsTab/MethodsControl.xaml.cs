@@ -8,9 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using Snoop.Converters;
 
 namespace Snoop.MethodsTab
@@ -23,7 +25,7 @@ namespace Snoop.MethodsTab
             DependencyPropertyDescriptor.FromProperty(RootTargetProperty, typeof(MethodsControl)).AddValueChanged(this, RootTargetChanged);
 
             //DependencyPropertyDescriptor.FromProperty(TargetProperty, typeof(MethodsControl)).AddValueChanged(this, TargetChanged);
-            DependencyPropertyDescriptor.FromProperty(ComboBox.SelectedValueProperty, typeof(ComboBox)).AddValueChanged(ComboBoxMethods, ComboBoxMethodChanged);
+            DependencyPropertyDescriptor.FromProperty(Selector.SelectedValueProperty, typeof(ComboBox)).AddValueChanged(ComboBoxMethods, ComboBoxMethodChanged);
             DependencyPropertyDescriptor.FromProperty(IsSelectedProperty, typeof(MethodsControl)).AddValueChanged(this, IsSelectedChanged);
 
             CheckBoxUseDataContext.Checked += _checkBoxUseDataContext_Checked;
@@ -50,7 +52,7 @@ namespace Snoop.MethodsTab
 
         private void SetTargetToRootTarget()
         {
-            if (CheckBoxUseDataContext.IsChecked.Value && RootTarget is FrameworkElement && ((FrameworkElement)RootTarget).DataContext != null)
+            if (CheckBoxUseDataContext.IsChecked == true && (RootTarget as FrameworkElement)?.DataContext != null)
             {
                 Target = ((FrameworkElement)RootTarget).DataContext;
             }
@@ -83,7 +85,7 @@ namespace Snoop.MethodsTab
         {
             if (IsSelected)
             {
-                CheckBoxUseDataContext.IsEnabled = (RootTarget is FrameworkElement) && ((FrameworkElement)RootTarget).DataContext != null;
+                CheckBoxUseDataContext.IsEnabled = (RootTarget as FrameworkElement)?.DataContext != null;
                 SetTargetToRootTarget();
             }
         }
@@ -118,7 +120,7 @@ namespace Snoop.MethodsTab
                 methodsControl.ParametersContainer.Visibility = Visibility.Collapsed;
 
                 //if this target has the previous method info, set it
-                for (int i = 0; i < methodInfos.Count && methodsControl._previousMethodInformation != null; i++)
+                for (var i = 0; i < methodInfos.Count && methodsControl._previousMethodInformation != null; i++)
                 {
                     var methodInfo = methodInfos[i];
                     if (methodInfo.Equals(methodsControl._previousMethodInformation))
@@ -135,14 +137,7 @@ namespace Snoop.MethodsTab
             if (CheckBoxUseDataContext.IsChecked.HasValue && CheckBoxUseDataContext.IsChecked.Value)
                 return;
 
-            if (!(Target is FrameworkElement) || ((FrameworkElement)Target).DataContext == null)
-            {
-                CheckBoxUseDataContext.IsEnabled = false;
-            }
-            else
-            {
-                CheckBoxUseDataContext.IsEnabled = true;
-            }
+            CheckBoxUseDataContext.IsEnabled = (Target as FrameworkElement)?.DataContext != null;
         }
 
         private SnoopMethodInformation _previousMethodInformation;
@@ -150,7 +145,7 @@ namespace Snoop.MethodsTab
         {
             var selectedMethod = ComboBoxMethods.SelectedValue as SnoopMethodInformation;
             if (selectedMethod == null || Target == null)
-                return;            
+                return;
 
             var parameters = selectedMethod.GetParameters(Target.GetType());
             ItemsControlParameters.ItemsSource = parameters;
@@ -177,7 +172,7 @@ namespace Snoop.MethodsTab
             if (selectedMethod == null)
                 return;
 
-            object[] parameters = new object[ItemsControlParameters.Items.Count];
+            var parameters = new object[ItemsControlParameters.Items.Count];
 
             if (!TryToCreateParameters(parameters))
                 return;
@@ -189,19 +184,19 @@ namespace Snoop.MethodsTab
         {
             try
             {
-                for (int index = 0; index < ItemsControlParameters.Items.Count; index++)
+                for (var index = 0; index < ItemsControlParameters.Items.Count; index++)
                 {
                     var paramInfo = ItemsControlParameters.Items[index] as SnoopParameterInformation;
                     if (paramInfo == null)
                         return false;
 
-                    if (paramInfo.ParameterType.Equals(typeof(DependencyProperty)))
+                    if (paramInfo.ParameterType == typeof(DependencyProperty))
                     {
-                        DependencyPropertyNameValuePair valuePair = paramInfo.ParameterValue as DependencyPropertyNameValuePair;
+                        var valuePair = (DependencyPropertyNameValuePair)paramInfo.ParameterValue;
                         parameters[index] = valuePair.DependencyProperty;
                     }
                     //else if (paramInfo.IsCustom || paramInfo.IsEnum)
-                    else if (paramInfo.ParameterValue == null || paramInfo.ParameterType.IsAssignableFrom(paramInfo.ParameterValue.GetType()))
+                    else if (paramInfo.ParameterValue == null || paramInfo.ParameterType.IsInstanceOfType(paramInfo.ParameterValue))
                     {
                         parameters[index] = paramInfo.ParameterValue;
                     }
@@ -251,7 +246,7 @@ namespace Snoop.MethodsTab
             }
             catch (Exception ex)
             {
-                string message = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                var message = ex.InnerException?.Message ?? ex.Message;
                 MessageBox.Show(message, "Error invoking method");
             }
         }
@@ -277,22 +272,15 @@ namespace Snoop.MethodsTab
             if (o == null)
                 return new ObservableCollection<SnoopMethodInformation>();
 
-            Type t = o.GetType();
+            var t = o.GetType();
             var methods = t.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod);
 
-            var methodsToReturn = new List<SnoopMethodInformation>();
+            var methodsToReturn = methods
+                .Where(method => !method.IsSpecialName)
+                .Select(method => new SnoopMethodInformation(method) { MethodName = method.Name })
+                .ToList();
 
-            foreach (var method in methods)
-            {
-                if (method.IsSpecialName)
-                    continue;
-
-                var info = new SnoopMethodInformation(method);
-                info.MethodName = method.Name;
-                
-                methodsToReturn.Add(info);
-            }
-            methodsToReturn.Sort();            
+            methodsToReturn.Sort();
 
             return methodsToReturn;
         }
@@ -302,11 +290,16 @@ namespace Snoop.MethodsTab
             if (RootTarget == null)
                 return;
 
-            var paramCreator = new ParameterCreator();
-            paramCreator.TextBlockDescription.Text = "Delve into the new desired target by double-clicking on the property. Clicking OK will select the currently delved property to be the new target.";
-            paramCreator.Title = "Change Target";
-            paramCreator.RootTarget = RootTarget;
-            paramCreator.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            var paramCreator = new ParameterCreator
+            {
+                TextBlockDescription =
+                {
+                    Text = "Delve into the new desired target by double-clicking on the property. Clicking OK will select the currently delved property to be the new target."
+                },
+                Title = "Change Target",
+                RootTarget = RootTarget,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
             paramCreator.ShowDialog();
 
             if (paramCreator.DialogResult.HasValue && paramCreator.DialogResult.Value)
@@ -316,5 +309,5 @@ namespace Snoop.MethodsTab
         }
 
     }
-       
+
 }

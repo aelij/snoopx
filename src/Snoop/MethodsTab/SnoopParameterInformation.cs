@@ -18,19 +18,13 @@ namespace Snoop.MethodsTab
         private ICommand _createCustomParameterCommand;
         private ICommand _nullOutParameter;
 
-        public TypeConverter TypeConverter { get; private set; }
+        public TypeConverter TypeConverter { get; }
 
         public Type DeclaringType { get; private set; }
 
-        public bool IsCustom
-        {
-            get { return !IsEnum && (TypeConverter.GetType() == typeof (TypeConverter)); }
-        }
+        public bool IsCustom => !IsEnum && (TypeConverter.GetType() == typeof (TypeConverter));
 
-        public bool IsEnum
-        {
-            get { return ParameterType.IsEnum; }
-        }
+        public bool IsEnum => ParameterType.IsEnum;
 
         public ICommand CreateCustomParameterCommand
         {

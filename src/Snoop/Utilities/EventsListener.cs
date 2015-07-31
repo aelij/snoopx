@@ -25,39 +25,34 @@ namespace Snoop.Utilities
 			_current = this;
 			_visual = visual;
 
-			Type type = visual.GetType();
+			var type = visual.GetType();
 
 			// Cannot unregister for events once we've registered, so keep the registration simple and only do it once.
-			for (Type baseType = type; baseType != null; baseType = baseType.BaseType)
+			for (var baseType = type; baseType != null; baseType = baseType.BaseType)
 			{
 				if (!_registeredTypes.ContainsKey(baseType))
 				{
 					_registeredTypes[baseType] = baseType;
 
-					RoutedEvent[] routedEvents = EventManager.GetRoutedEventsForOwner(baseType);
+					var routedEvents = EventManager.GetRoutedEventsForOwner(baseType);
 					if (routedEvents != null)
 					{
-						foreach (RoutedEvent routedEvent in routedEvents)
+						foreach (var routedEvent in routedEvents)
 							EventManager.RegisterClassHandler(baseType, routedEvent, new RoutedEventHandler(HandleEvent), true);
 					}
 				}
 			}
 		}
 
-		public ObservableCollection<EventInformation> Events
-		{
-			get { return _events; }
-		}
-		private readonly ObservableCollection<EventInformation> _events = new ObservableCollection<EventInformation>();
+		public ObservableCollection<EventInformation> Events { get; } = new ObservableCollection<EventInformation>();
 
-		public static string Filter
+	    public static string Filter
 		{
 			get { return _filter; }
 			set
 			{
 				_filter = value;
-				if (_filter != null)
-					_filter = _filter.ToLower();
+			    _filter = _filter?.ToLower();
 			}
 		}
 
@@ -69,14 +64,14 @@ namespace Snoop.Utilities
 
 		private static void HandleEvent(object sender, RoutedEventArgs e)
 		{
-			if (_current != null && sender == _current._visual)
+			if (_current != null && ReferenceEquals(sender, _current._visual))
 			{
 				if (string.IsNullOrEmpty(Filter) || e.RoutedEvent.Name.ToLower().Contains(Filter))
 				{
-					_current._events.Add(new EventInformation(e));
+					_current.Events.Add(new EventInformation(e));
 
-					while (_current._events.Count > 100)
-						_current._events.RemoveAt(0);
+					while (_current.Events.Count > 100)
+						_current.Events.RemoveAt(0);
 				}
 			}
 		}
@@ -95,14 +90,11 @@ namespace Snoop.Utilities
 			_evt = evt;
 		}
 
-		public IEnumerable Properties
-		{
-			get { return PropertyInformation.GetProperties(_evt); }
-		}
+		public IEnumerable Properties => PropertyInformation.GetProperties(_evt);
 
-		public override string ToString()
+	    public override string ToString()
 		{
-			return string.Format("{0} Handled: {1} OriginalSource: {2}", _evt.RoutedEvent.Name, _evt.Handled, _evt.OriginalSource);
+			return $"{_evt.RoutedEvent.Name} Handled: {_evt.Handled} OriginalSource: {_evt.OriginalSource}";
 		}
 
 		private readonly RoutedEventArgs _evt;
