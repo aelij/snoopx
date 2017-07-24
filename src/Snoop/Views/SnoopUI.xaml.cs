@@ -5,14 +5,11 @@
 // All other rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
@@ -24,9 +21,6 @@ using Snoop.Infrastructure;
 using Snoop.Properties;
 using Snoop.Utilities;
 using Snoop.VisualTree;
-using Application = System.Windows.Application;
-using Cursors = System.Windows.Input.Cursors;
-using MessageBox = System.Windows.MessageBox;
 
 namespace Snoop.Views
 {
@@ -100,139 +94,6 @@ namespace Snoop.Views
             // we can't catch the mouse wheel at the ZoomerControl level,
             // so we catch it here, and relay it to the ZoomerControl.
             MouseWheel += SnoopUI_MouseWheel;
-        }
-
-        #endregion
-
-        #region Public Static Methods
-
-        public static bool GoBabyGo()
-        {
-            try
-            {
-                SnoopApplication();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"There was an error snooping! Message = {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error Snooping", MessageBoxButton.OK);
-                return false;
-            }
-        }
-
-        public static void SnoopApplication()
-        {
-            var dispatcher = FindDispatcher();
-
-            if (dispatcher?.CheckAccess() == true)
-            {
-                CheckForOtherDispatchers(dispatcher);
-
-                LaunchSnoopApplicationOnDispatcher();
-            }
-            else
-            {
-                bool created = false;
-                if (dispatcher == null)
-                {
-                    dispatcher = Dispatcher.CurrentDispatcher;
-                    created = true;
-                }
-                dispatcher.InvokeAsync(LaunchSnoopApplicationOnDispatcher);
-                if (created)
-                {
-                    Dispatcher.Run();
-                }
-            }
-        }
-
-        private static void LaunchSnoopApplicationOnDispatcher()
-        {
-            var snoop = new SnoopUI();
-            var title = TryGetMainWindowTitle();
-            if (!string.IsNullOrEmpty(title))
-            {
-                snoop.Title = $"{title} - SnoopX";
-            }
-
-            snoop.Inspect();
-        }
-
-        private static Dispatcher FindDispatcher()
-        {
-            if (Application.Current != null)
-            {
-                return Application.Current.Dispatcher;
-            }
-            if (System.Windows.Forms.Application.OpenForms.Count > 0)
-            {
-                return (Dispatcher)System.Windows.Forms.Application.OpenForms[0].Invoke(
-                        new Func<Dispatcher>(() => Dispatcher.CurrentDispatcher));
-            }
-            var source = PresentationSource.CurrentSources.OfType<PresentationSource>().FirstOrDefault();
-            return source?.Dispatcher;
-        }
-
-        private static void CheckForOtherDispatchers(Dispatcher mainDispatcher)
-        {
-            // check and see if any of the root visuals have a different mainDispatcher
-            // if so, ask the user if they wish to enter multiple mainDispatcher mode.
-            // if they do, launch a snoop ui for every additional mainDispatcher.
-            // see http://snoopwpf.codeplex.com/workitem/6334 for more info.
-
-            var rootVisuals = new List<Visual>();
-            var dispatchers = new List<Dispatcher> { mainDispatcher };
-            foreach (PresentationSource presentationSource in PresentationSource.CurrentSources)
-            {
-                var presentationSourceRootVisual = presentationSource.RootVisual;
-
-                if (!(presentationSourceRootVisual is Window))
-                    continue;
-
-                var presentationSourceRootVisualDispatcher = presentationSourceRootVisual.Dispatcher;
-
-                if (dispatchers.IndexOf(presentationSourceRootVisualDispatcher) == -1)
-                {
-                    rootVisuals.Add(presentationSourceRootVisual);
-                    dispatchers.Add(presentationSourceRootVisualDispatcher);
-                }
-            }
-
-            if (rootVisuals.Count > 0)
-            {
-                var result =
-                    MessageBox.Show
-                    (
-                        "Snoop has noticed windows running in multiple dispatchers!\n\n" +
-                        "Would you like to enter multiple dispatcher mode, and have a separate Snoop window for each dispatcher?\n\n" +
-                        "Without having a separate Snoop window for each dispatcher, you will not be able to Snoop the windows in the dispatcher threads outside of the main dispatcher. " +
-                        "Also, note, that if you bring up additional windows in additional dispatchers (after Snooping), you will need to Snoop again in order to launch Snoop windows for those additional dispatchers.",
-                        "Enter Multiple Dispatcher Mode",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question
-                    );
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    SnoopModes.MultipleDispatcherMode = true;
-                    var thread = new Thread(DispatchOut);
-                    thread.Start(rootVisuals);
-                }
-            }
-        }
-
-        private static void DispatchOut(object o)
-        {
-            var visuals = (List<Visual>)o;
-            foreach (var visual in visuals)
-            {
-                visual.Dispatcher.Invoke(() =>
-                {
-                    var snoopOtherDispatcher = new SnoopUI();
-                    snoopOtherDispatcher.Inspect(visual, visual as Window);
-                });
-            }
         }
 
         #endregion
@@ -760,15 +621,6 @@ namespace Snoop.Views
                 SetFilter(_filter);
             }
             return node;
-        }
-
-        private static string TryGetMainWindowTitle()
-        {
-            if (Application.Current != null && Application.Current.MainWindow != null)
-            {
-                return Application.Current.MainWindow.Title;
-            }
-            return string.Empty;
         }
 
         private void HandleTreeSelectedItemChanged(object sender, EventArgs e)

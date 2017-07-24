@@ -168,6 +168,7 @@
   <ItemGroup>
     <Compile Include="Controls\AdornerContainer.cs" />
     <Compile Include="Controls\NoFocusHyperlink.cs" />
+    <Compile Include="SnoopLauncher.cs" />
     <Compile Include="Utilities\Injector.cs" />
     <Compile Include="VisualTree\ApplicationTreeItem.cs" />
     <Compile Include="Controls\BringIntoViewBehavior.cs" />

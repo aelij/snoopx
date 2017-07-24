@@ -149,7 +149,7 @@ namespace Snoop.Utilities
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                Injector.Launch(OwningProcess.Id, typeof(SnoopUI).Assembly, typeof(SnoopUI).FullName, "GoBabyGo");
+                Injector.Launch(OwningProcess.Id, typeof(SnoopLauncher).Assembly, typeof(SnoopLauncher).FullName, nameof(SnoopLauncher.GoBabyGo));
             }
             catch (Exception e)
             {
@@ -163,7 +163,7 @@ namespace Snoop.Utilities
             Mouse.OverrideCursor = Cursors.Wait;
             try
             {
-                Injector.Launch(OwningProcess.Id, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, "GoBabyGo");
+                Injector.Launch(OwningProcess.Id, typeof(Zoomer).Assembly, typeof(Zoomer).FullName, nameof(Zoomer.GoBabyGo));
             }
             catch (Exception e)
             {

@@ -29,10 +29,8 @@ namespace Snoop.Utilities
 	        var bitness = IntPtr.Size == 8 ? "64" : "32";
 	        const string clr = "4.0";
 
-	        // sometimes the module names aren't always the same case. compare case insensitive.
-	        // see for more info: http://snoopwpf.codeplex.com/workitem/6090
 	        if (WindowInfo.GetModulesByProcessId(processId)
-	            .Any(module => module.szModule.Contains("wow64.dll") &&
+	            .Any(module => module.szModule.IndexOf("wow64.dll", StringComparison.OrdinalIgnoreCase) >= 0 &&
 	                           FileVersionInfo.GetVersionInfo(module.szExePath).FileMajorPart > 3))
 	        {
 	            bitness = "32";
